@@ -8,17 +8,21 @@ using namespace std;
 
 #define MAX(X,Y) ((X > Y) ? X : Y)
 
+#define TEST
+
 int main (int argc, char **argv) {
-  Solucao solucao;
 
   // srand(time(NULL));
-
-  lerInstancia();
-  construtivaAleatoria(solucao);
-  calcularFO(solucao);
-  escreverSolucao(solucao);
-
-  // executarTestes(10000);
+  
+  #ifdef TEST
+    executarTestes(10000);
+  #else
+    Solucao solucao;
+    lerInstancia();
+    construtivaAleatoria(solucao);
+    calcularFO(solucao);
+    escreverSolucao(solucao);
+  #endif
 
   return 0;
 }
