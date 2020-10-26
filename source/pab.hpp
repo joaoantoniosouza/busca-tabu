@@ -12,13 +12,14 @@
 int numeroNavios, numeroBercos;
 
 int tempoAtendimento[MAX_BERCOS][MAX_NAVIOS];
-int tempoChegadaNavio[MAX_NAVIOS];
-int tempoSaidaNavio[MAX_NAVIOS];
+int tempoChegadaNavios[MAX_NAVIOS];
+int ordemChegadaNavios[MAX_NAVIOS];
+int tempoSaidaNavios[MAX_NAVIOS];
 
 #define ABERTURA 0
 #define FECHAMENTO 1
 int aberturaFechamento[MAX_BERCOS][2];
-int proximoHorarioDisponivelBerco[MAX_BERCOS];
+int proximoTempoDisponivelBerco[MAX_BERCOS];
 
 typedef struct estruturaSolucao {
   int tempoTotal;
@@ -26,12 +27,15 @@ typedef struct estruturaSolucao {
   int tempoAtracamento[MAX_NAVIOS];
 } Solucao;
 
-void verificarParametrosEntrada (char *argv[]);
-void lerInstancia ();
+void verificarParametrosEntrada(char *argv[]);
+void lerInstancia();
 void construtivaAleatoria(Solucao &solucao);
+void construtivaGulosa(Solucao &solucao);
 void calcularFO(Solucao &solucao);
 void clonarSolucao(Solucao &original, Solucao &copia);
 void escreverSolucao(Solucao &solucao);
+void ordenarNaviosPorChegada(int *vetor, int esquerda, int direita);
+void particao(int *vetor, int esquerda, int direita, int &esq, int &dir);
 void executarTestes(int repeticoes);
 
 #endif
