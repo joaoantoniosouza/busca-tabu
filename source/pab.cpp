@@ -51,21 +51,28 @@ void construtivaAleatoria(Solucao &solucao) {
 }
 
 void calcularFO(Solucao &solucao) {
-    solucao.tempoTotal = 0;
+    solucao.tempoTotal = 0; 
 
     for(int i = 0; i < numeroNavios; i++) {
       if (solucao.atendimento[i] != -1) {
         solucao.tempoTotal += solucao.tempoAtracamento[i] - tempoChegadaNavio[i] + tempoAtendimento[solucao.atendimento[i]][i];
-      }
 
-      solucao.tempoTotal += 
-        PENALIDADE_NAVIO_NAO_ATENDIDO * (solucao.atendimento[i] == -1) +
-        PENALIDADE_ATRACAMENTO_IMPOSSIVEL * (solucao.tempoAtracamento[i] < tempoChegadaNavio[i]) +
-        PENALIDADE_HORARIO_LIMITE_NAVIO * ((solucao.tempoAtracamento[i] + tempoAtendimento[solucao.atendimento[i]][i]) > tempoSaidaNavio[i]);
+        if (solucao.tempoAtracamento[i] < tempoChegadaNavio[i]) {
+         solucao.tempoTotal += PENALIDADE_ATRACAMENTO_IMPOSSIVEL;
+        } else {
+          if ((solucao.tempoAtracamento[i] + tempoAtendimento[solucao.atendimento[i]][i]) > tempoSaidaNavio[i]) {
+            solucao.tempoTotal += PENALIDADE_HORARIO_LIMITE_NAVIO;
+          }
+        }
+      } else {
+        solucao.tempoTotal += PENALIDADE_NAVIO_NAO_ATENDIDO;
+      }
     }
 
     for(int k = 0; k < numeroBercos; k++) {
-      solucao.tempoTotal += PENALIDADE_HORARIO_LIMITE_BERCO * ((proximoHorarioDisponivelBerco[k] - aberturaFechamento[k][FECHAMENTO]) > 0);
+      if ((proximoHorarioDisponivelBerco[k] - aberturaFechamento[k][FECHAMENTO]) > 0) {
+        solucao.tempoTotal += PENALIDADE_HORARIO_LIMITE_BERCO;
+      }
     }
 }
 
