@@ -45,8 +45,11 @@ void construtivaAleatoria(Solucao &solucao) {
     }
 
     solucao.atendimento[i] = berco;
-    solucao.tempoAtracamento[i] = MAX(tempoChegadaNavio[i], proximoHorarioDisponivelBerco[berco]);
-    proximoHorarioDisponivelBerco[berco] = solucao.tempoAtracamento[i] + tempoAtendimento[berco][i];     
+   
+    if (berco != -1) {
+      solucao.tempoAtracamento[i] = MAX(tempoChegadaNavio[i], proximoHorarioDisponivelBerco[berco]);
+      proximoHorarioDisponivelBerco[berco] = solucao.tempoAtracamento[i] + tempoAtendimento[berco][i];
+    }
   }
 }
 
