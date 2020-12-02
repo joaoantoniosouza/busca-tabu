@@ -27,7 +27,7 @@ typedef struct estruturaSolucao {
 } Solucao;
 
 void verificarParametrosEntrada (char *argv[]);
-void lerInstancia ();
+void lerInstancia (char *nomeInstancia);
 void construtivaAleatoria(Solucao &solucao);
 void calcularFO(Solucao &solucao);
 void clonarSolucao(Solucao &original, Solucao &copia);

@@ -8,17 +8,29 @@ using namespace std;
 
 #define MAX(X,Y) ((X > Y) ? X : Y)
 
-#define TEST
+// #define TEST
+#define DEBUG
 
 int main (int argc, char **argv) {
 
+  #ifndef DEBUG
+    if (argc < 2) {
+      cout << "é nessesário informar um instância." << endl;
+      return 1;
+    }
+
+    char* nomeInstancia = argv[1];
+  #else
+    char* nomeInstancia = "instancias/i01.txt";
+  #endif
+
   // srand(time(NULL));
-  
+
   #ifdef TEST
-    executarTestes(10000);
+    executarTestes(10000, nomeInstancia);
   #else
     Solucao solucao;
-    lerInstancia();
+    lerInstancia(nomeInstancia);
     construtivaAleatoria(solucao);
     calcularFO(solucao);
     escreverSolucao(solucao);
@@ -29,6 +41,10 @@ int main (int argc, char **argv) {
 
 void construtivaAleatoria(Solucao &solucao) {
   int berco, limiteBusca;
+
+  for (int k = 0; k < numeroBercos; k++) {
+    proximoHorarioDisponivelBerco[k] = aberturaFechamento[k][ABERTURA];
+  }
 
   limiteBusca = MAX(100, numeroBercos * numeroNavios);
 
@@ -45,7 +61,7 @@ void construtivaAleatoria(Solucao &solucao) {
     }
 
     solucao.atendimento[i] = berco;
-   
+
     if (berco != -1) {
       solucao.tempoAtracamento[i] = MAX(tempoChegadaNavio[i], proximoHorarioDisponivelBerco[berco]);
       proximoHorarioDisponivelBerco[berco] = solucao.tempoAtracamento[i] + tempoAtendimento[berco][i];
@@ -54,7 +70,7 @@ void construtivaAleatoria(Solucao &solucao) {
 }
 
 void calcularFO(Solucao &solucao) {
-    solucao.tempoTotal = 0; 
+    solucao.tempoTotal = 0;
 
     for(int i = 0; i < numeroNavios; i++) {
       if (solucao.atendimento[i] != -1) {
@@ -87,7 +103,7 @@ void escreverSolucao(Solucao &solucao) {
   int numeroBercosUtilizados , numeroNaviosAtendidos;
   int totalViolacaoNavios, totalViolacaoBercos;
   int diferenca;
-  
+
   numeroBercosUtilizados = numeroNaviosAtendidos = 0;
   totalViolacaoBercos = totalViolacaoNavios = 0;
 
@@ -106,7 +122,7 @@ void escreverSolucao(Solucao &solucao) {
     if (solucao.atendimento[i] != -1) {
       numeroNaviosAtendidos++;
     }
-    
+
     diferenca = solucao.tempoAtracamento[i] + tempoAtendimento[solucao.atendimento[i]][i] - tempoSaidaNavio[i];
     if (diferenca > 0) {
       totalViolacaoNavios += diferenca;
@@ -119,51 +135,52 @@ void escreverSolucao(Solucao &solucao) {
   cout << "Total de viol. nas jan. de tempo dos bercos.........: " << totalViolacaoBercos << endl;
   cout << "Total de viol. nas jan. de tempo dos navios.........: " << totalViolacaoNavios << endl;
   cout << "Tempo total de operação.............................: " << solucao.tempoTotal << endl;
-  
+
   cout << endl << "Atendimentos: " << endl;
   for(int i = 0; i < numeroNavios; i++) {
-    cout << "Navio " << i + 1 << " -> berço " << solucao.atendimento[i] + 1 << ": "; 
+    cout << "Navio " << i + 1 << " -> berço " << solucao.atendimento[i] + 1 << ": ";
     cout << "\tHA " << solucao.tempoAtracamento[i] << "\t";
     cout << "HD " << solucao.tempoAtracamento[i] + tempoAtendimento[solucao.atendimento[i]][i];
     cout << endl;
   }
 }
 
-void lerInstancia () {
-  cin >> numeroNavios >> numeroBercos;
-  
+void lerInstancia (char* nomeInstancia) {
+  FILE* instancia = fopen(nomeInstancia, "r");
+
+  fscanf(instancia, "%d %d", &numeroNavios, &numeroBercos);
+
   for (int k = 0; k < numeroBercos; k++) {
     for (int i = 0; i < numeroNavios; i++ ) {
-      cin >> tempoAtendimento[k][i];
+      fscanf(instancia, "%d", &tempoAtendimento[k][i]);
     }
   }
 
   for (int k = 0; k < numeroBercos; k++) {
-    cin >> aberturaFechamento[k][ABERTURA] >> aberturaFechamento[k][FECHAMENTO];
-    proximoHorarioDisponivelBerco[k] = aberturaFechamento[k][ABERTURA];
+    fscanf(instancia, "%d %d", &aberturaFechamento[k][ABERTURA], &aberturaFechamento[k][FECHAMENTO]);
   }
 
   for (int i = 0; i < numeroNavios; i++) {
-    cin >> tempoChegadaNavio[i];
+    fscanf(instancia, "%d", &tempoChegadaNavio[i]);
   }
 
   for (int i = 0; i < numeroNavios; i++) {
-    cin >> tempoSaidaNavio[i];
+    fscanf(instancia, "%d", &tempoSaidaNavio[i]);
   }
 }
 
-void executarTestes (int repeticoes) {
+void executarTestes (int repeticoes, char* nomeInstancia) {
   Solucao solucao;
   clock_t h;
   double tempo;
 
-  lerInstancia();
+  lerInstancia(nomeInstancia);
 
   h = clock();
   construtivaAleatoria(solucao);
   h = clock() - h;
   tempo = (double) h / CLOCKS_PER_SEC;
- 
+
   calcularFO(solucao);
 
   cout << "Valor da FO: " << solucao.tempoTotal << endl;
@@ -171,7 +188,7 @@ void executarTestes (int repeticoes) {
 
   h = clock();
   for (int t = 0; t < repeticoes; t++) {
-    construtivaAleatoria(solucao);  
+    construtivaAleatoria(solucao);
   }
   h = clock() - h;
   tempo = (double) h / CLOCKS_PER_SEC;
@@ -182,7 +199,7 @@ void executarTestes (int repeticoes) {
 
   h = clock();
   for (int t = 0; t < repeticoes; t++) {
-    calcularFO(solucao);  
+    calcularFO(solucao);
   }
   h = clock() - h;
   tempo = (double) h / CLOCKS_PER_SEC;
