@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "pab.hpp"
+#include <climits>
 
 using namespace std;
 
@@ -37,6 +38,57 @@ int main (int argc, char **argv) {
   #endif
 
   return 0;
+}
+
+void buscaTabu (const int tamanhoLista, const double tempoMaximo, Solucao &solucao) {
+  cout << "Executando busca tabu..." << endl;
+
+  Solucao solucaoVizinha;
+
+  // gerando solução inicial
+  construtivaAleatoria(solucao);
+  calcularFO(solucao);
+  clonarSolucao(solucao, solucaoVizinha);
+
+  int numeroIteracoes, melhorIteracao;
+
+  // berco 0, navio 1
+  int **listaTabu = new int*[2];
+  listaTabu[0] = new int[tamanhoLista];
+  listaTabu[1] = new int[tamanhoLista];
+
+
+
+}
+
+int procurarNaLista (int **lista, const int quantidadeElementos, const int berco, const int navio) {
+  for (int i = 0; i < quantidadeElementos; i++) {
+    if (lista[0][i] == berco && lista[1][i] == navio) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+int removerDaLista (int **lista, int &quantidadeElementos, const int posicao) {
+  for (int i = 0; i < quantidadeElementos; i++) {
+    lista[0][i-1] = lista[0][i];
+    lista[1][i-1] = lista[1][i];
+  }
+
+  quantidadeElementos--;
+}
+
+void inserirNaLista (int **lista, int &quantidadeElementos, const int tamanhoLista, const int berco, const int navio) {
+  // se a lista estiver cheia remove o primeiro elemento que entrou (FIFO)
+  if (quantidadeElementos == tamanhoLista) {
+    removerDaLista(lista, quantidadeElementos, 0);
+  }
+
+  lista[0][quantidadeElementos] = berco;
+  lista[1][quantidadeElementos] = navio;
+  quantidadeElementos++;
 }
 
 void construtivaAleatoria(Solucao &solucao) {
