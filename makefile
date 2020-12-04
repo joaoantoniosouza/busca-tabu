@@ -9,4 +9,4 @@ pab.o: ./source/pab.cpp
 	g++ -o pab.o -c ./source/pab.cpp -Wall
 
 clear:
-	rm -rf *.o *~ pab ./objects
+	rm -rf *.o *~ pab ./objects ./source/pab
