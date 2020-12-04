@@ -26,17 +26,25 @@ typedef struct estruturaSolucao {
   int tempoAtracamento[MAX_NAVIOS];
 } Solucao;
 
+typedef struct estruturaListaTabu {
+  int quantidadeElementos;
+  int tamanho;
+  int *bercos;
+  int *navios;
+} ListaTabu;
+
 void verificarParametrosEntrada (char *argv[]);
 void lerInstancia (char *nomeInstancia);
 void construtivaAleatoria(Solucao &solucao);
 void calcularFO(Solucao &solucao);
 void clonarSolucao(Solucao &original, Solucao &copia);
+double calcularTempo (clock_t &clockInicial, clock_t &clockFinal);
 void escreverSolucao(Solucao &solucao);
 void executarTestes(int repeticoes);
 
-void buscaTabu (const int tamanhoLista, const double tempoMaximo, Solucao &solucao, double &melhorTempo, double &tempoTotal);
-int procurarNaLista (int **lista, const int quantidadeElementos, const int berco, const int navio);
-int removerDaLista (int **lista, int &quantidadeElementos, const int posicao);
-void inserirNaLista (int **lista, int &quantidadeElementos, const int tamanhoLista, const int berco, const int navio);
+void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaximo, double &tempoTotal, double &momentoMelhorSolucao);
+int procurarNaLista (ListaTabu &lista, const int navio, const int berco);
+void removerDaLista (ListaTabu &lista, const int posicao);
+void inserirNaLista (ListaTabu &lista, const int berco, const int navio);
 
 #endif

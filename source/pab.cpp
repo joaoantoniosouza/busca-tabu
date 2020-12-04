@@ -14,15 +14,15 @@ using namespace std;
 
 int main (int argc, char **argv) {
 
-  #ifndef DEBUG
+  #ifdef DEBUG
+    char* nomeInstancia = "instancias/i01.txt";
+  #else
     if (argc < 2) {
       cout << "é nessesário informar um instância." << endl;
       return 1;
     }
 
     char* nomeInstancia = argv[1];
-  #else
-    char* nomeInstancia = "instancias/i01.txt";
   #endif
 
   // srand(time(NULL));
@@ -31,39 +31,119 @@ int main (int argc, char **argv) {
     executarTestes(10000, nomeInstancia);
   #else
     Solucao solucao;
+    double tempoTotal, melhorTempo;
     lerInstancia(nomeInstancia);
-    construtivaAleatoria(solucao);
-    calcularFO(solucao);
+    // construtivaAleatoria(solucao);
+    // calcularFO(solucao);
+    buscaTabu(solucao, 100, 100, tempoTotal, melhorTempo);
     escreverSolucao(solucao);
   #endif
 
   return 0;
 }
 
-void buscaTabu (const int tamanhoLista, const double tempoMaximo, Solucao &solucao) {
+void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaximo, double &tempoTotal, double &momentoMelhorSolucao) {
   cout << "Executando busca tabu..." << endl;
 
+  clock_t clockInicial, clockAtual;
   Solucao solucaoVizinha;
 
   // gerando solução inicial
+  clockInicial = clock();
   construtivaAleatoria(solucao);
   calcularFO(solucao);
+  clockAtual = clock();
+
+  momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
+  tempoTotal = momentoMelhorSolucao;
+
   clonarSolucao(solucao, solucaoVizinha);
 
-  int numeroIteracoes, melhorIteracao;
+  // ---- lista tabu - berco 0, navio 1
+  ListaTabu listaTabu;
+  listaTabu.bercos = new int[tamanhoLista];
+  listaTabu.navios = new int[tamanhoLista];
+  listaTabu.quantidadeElementos = 0;
+  listaTabu.tamanho = tamanhoLista;
 
-  // berco 0, navio 1
-  int **listaTabu = new int*[2];
-  listaTabu[0] = new int[tamanhoLista];
-  listaTabu[1] = new int[tamanhoLista];
+  int bercoOriginal, tempoOriginal;
+  int melhorTempo, melhorNavio, melhorBerco, melhorPosicao;
+  int flag, posicaoNaLista;
 
+  while(tempoTotal < tempoMaximo) {
+    melhorTempo = INT_MAX;
 
+    flag = -1;
+    for (int i = 0; i < numeroNavios; i++) {
+      bercoOriginal = solucaoVizinha.atendimento[i];
+      tempoOriginal = solucaoVizinha.tempoTotal;
 
+      for (int k = 0; k < numeroBercos; k++) {
+        if (k == solucaoVizinha.atendimento[i]) continue;
+
+        solucaoVizinha.atendimento[i] = k;
+        calcularFO(solucaoVizinha);
+        posicaoNaLista = procurarNaLista(listaTabu, i, k);
+
+        if (posicaoNaLista == -1) {
+          if (solucaoVizinha.tempoTotal < melhorTempo) {
+            flag = 1;
+            melhorPosicao = -1;
+            melhorTempo = solucaoVizinha.tempoTotal;
+            melhorBerco = k;
+            melhorNavio = i;
+          }
+        } else {
+          if (solucaoVizinha.tempoTotal < solucao.tempoTotal) {
+            flag = 0;
+            melhorPosicao = posicaoNaLista;
+            melhorTempo = solucaoVizinha.tempoTotal;
+            melhorBerco = k;
+            melhorNavio = i;
+          }
+        }
+      }
+
+      solucaoVizinha.atendimento[i] = bercoOriginal;
+      solucaoVizinha.tempoTotal = tempoOriginal;
+    }
+
+    if (flag == -1) {
+      melhorBerco = listaTabu.bercos[0];
+      melhorNavio = listaTabu.navios[0];
+      solucaoVizinha.atendimento[melhorNavio] = melhorBerco;
+      calcularFO(solucaoVizinha);
+      removerDaLista(listaTabu, 0);
+    } else {
+      if (flag == 0) {
+        removerDaLista(listaTabu, melhorPosicao);
+      } else {
+        inserirNaLista(listaTabu, melhorNavio, melhorBerco);
+      }
+    }
+
+    if (solucaoVizinha.tempoTotal < solucao.tempoTotal) {
+      clonarSolucao(solucaoVizinha, solucao);
+      clockAtual = clock();
+      momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
+    }
+
+    // ----
+    clockAtual = clock();
+    tempoTotal = calcularTempo(clockInicial, clockAtual);
+  }
+
+  delete[] listaTabu.bercos;
+  delete[] listaTabu.navios;
 }
 
-int procurarNaLista (int **lista, const int quantidadeElementos, const int berco, const int navio) {
-  for (int i = 0; i < quantidadeElementos; i++) {
-    if (lista[0][i] == berco && lista[1][i] == navio) {
+double calcularTempo (clock_t &clockInicial, clock_t &clockAtual) {
+  return (double)(clockAtual - clockInicial) / CLOCKS_PER_SEC;
+}
+
+int procurarNaLista (ListaTabu &lista, const int navio, const int berco) {
+  for (int i = 0; i < lista.quantidadeElementos; i++) {
+    if (lista.bercos[i] == berco && lista.navios[i] == navio) {
       return i;
     }
   }
@@ -71,24 +151,24 @@ int procurarNaLista (int **lista, const int quantidadeElementos, const int berco
   return -1;
 }
 
-int removerDaLista (int **lista, int &quantidadeElementos, const int posicao) {
-  for (int i = 0; i < quantidadeElementos; i++) {
-    lista[0][i-1] = lista[0][i];
-    lista[1][i-1] = lista[1][i];
+void removerDaLista (ListaTabu &lista, const int posicao) {
+  for (int i = posicao; i < lista.quantidadeElementos; i++) {
+    lista.bercos[i] = lista.bercos[i + 1];
+    lista.navios[i] = lista.navios[i + 1];
   }
 
-  quantidadeElementos--;
+  lista.quantidadeElementos--;
 }
 
-void inserirNaLista (int **lista, int &quantidadeElementos, const int tamanhoLista, const int berco, const int navio) {
+void inserirNaLista (ListaTabu &lista, const int navio, const int berco) {
   // se a lista estiver cheia remove o primeiro elemento que entrou (FIFO)
-  if (quantidadeElementos == tamanhoLista) {
-    removerDaLista(lista, quantidadeElementos, 0);
+  if (lista.quantidadeElementos == lista.tamanho) {
+    removerDaLista(lista, 0);
   }
 
-  lista[0][quantidadeElementos] = berco;
-  lista[1][quantidadeElementos] = navio;
-  quantidadeElementos++;
+  lista.bercos[lista.quantidadeElementos] = berco;
+  lista.navios[lista.quantidadeElementos] = navio;
+  lista.quantidadeElementos++;
 }
 
 void construtivaAleatoria(Solucao &solucao) {
