@@ -1,12 +1,84 @@
+# Debug mode
+DBG = off
+
+# Optimization switch
+OPT = on
+
+# Include dir : -I//diretório
+INCLUDES =
+
+# Objects : nome.o
+OBJS =
+
+# Libraries : -L//diretório -nomelib
+LIB =
+
+# Programs
+PAB_OBJ = pab.o
+PAB_EXE = pab
+
+SOLUCAO_OBJ = solucao.o
+SOLUCAO_EXE = solucao
+
+CXX = g++
+
+USER_FLAGS = -std=c++14
+
+# Compiler flags for debugging
+ifeq ($(OPT), off)
+	USER_FLAGS += -ggdb3 -fexceptions -fno-omit-frame-pointer \
+		-fno-optimize-sibling-calls -fno-inline
+else
+	USER_FLAGS += -O3 -fomit-frame-pointer -funroll-loops
+	ifeq ($(CXX), g++)
+		USER_FLAGS += -ftracer -fpeel-loops -fprefetch-loop-arrays
+	endif
+endif
+
+
+# Enabling debug mode (printf)
+ifeq ($(DBG), on)
+	USER_FLAGS += -DDBG
+endif
+
+
+# Include parallel stuff
+#USER_FLAGS += -fopenmp
+
+
+# Warning flags
+USER_FLAGS += -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization \
+	-Wformat=2 -Winit-self -Wmissing-format-attribute -Wshadow \
+	-Wpointer-arith -Wredundant-decls -Wstrict-aliasing=2 \
+	-Wfloat-equal -Weffc++
+
+ifeq ($(CXX), g++)
+	USER_FLAGS += -Wunsafe-loop-optimizations
+endif
+
+CXXFLAGS = $(USER_FLAGS)
+
+.PHONY: all
+.SUFFIXES: .cpp .o
+
 all: pab
 
-pab: pab.o
-	g++ -o pab pab.o
-	mkdir -p objects
-	mv *.o objects/
+pab: $(OBJS) $(PAB_OBJ)
+	@echo "--> Linking objects... "
+	$(CXX) $(CXXFLAGS) $(OBJS) $(PAB_OBJ) -o $(PAB_EXE) $(LIB)
+	@echo
 
-pab.o: ./source/pab.cpp
-	g++ -o pab.o -c ./source/pab.cpp -Wall
+solucao: $(OBJS) $(SOLUCAO_OBJ)
+	@echo "--> Linking objects... "
+	$(CXX) $(CXXFLAGS) $(OBJS) $(SOLUCAO_OBJ) -o $(SOLUCAO_EXE) $(LIB)
+	@echo
 
-clear:
-	rm -rf *.o *~ pab ./objects
+.cpp.o:
+	@echo "--> Compiling $<..."
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(USER_DEFINES) -c $< -o $@
+	@echo
+
+clean:
+	@echo "--> Cleaning compiled..."
+	rm -rf $(PAB_EXE) $(SOLUCAO_EXE)
+	rm -rf *.o
