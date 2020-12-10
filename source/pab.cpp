@@ -15,7 +15,7 @@ using namespace std;
 int main (int argc, char **argv) {
 
   #ifdef DEBUG
-    char* nomeInstancia = "instancias/i01.txt";
+    char* nomeInstancia = "instancias/i05.txt";
   #else
     if (argc < 2) {
       cout << "é nessesário informar um instância." << endl;
@@ -25,7 +25,9 @@ int main (int argc, char **argv) {
     char* nomeInstancia = argv[1];
   #endif
 
-  // srand(time(NULL));
+  // melhorFO = 2771;
+  // seed = 17081198;
+  srand(110);
 
   #ifdef TEST
     executarTestes(10000, nomeInstancia);
@@ -35,7 +37,7 @@ int main (int argc, char **argv) {
     lerInstancia(nomeInstancia);
     // construtivaAleatoria(solucao);
     // calcularFO(solucao);
-    buscaTabu(solucao, 100, 100, tempoTotal, melhorTempo);
+    buscaTabu(solucao, 100000, 10, tempoTotal, melhorTempo);
     escreverSolucao(solucao);
   #endif
 
@@ -53,6 +55,8 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
   construtivaAleatoria(solucao);
   calcularFO(solucao);
   clockAtual = clock();
+
+  printf("Solução inicial: %d\n", solucao.tempoTotalAtendimento);
 
   momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
   tempoTotal = momentoMelhorSolucao;
@@ -75,43 +79,45 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
 
     flag = -1;
     for (int i = 0; i < numeroNavios; i++) {
-      bercoOriginal = solucaoVizinha.atendimento[i];
-      tempoOriginal = solucaoVizinha.tempoTotal;
+      bercoOriginal = solucaoVizinha.atendimentoNavios[i];
+      tempoOriginal = solucaoVizinha.tempoTotalAtendimento;
 
+      // ! porque k = -1?
       for (int k = 0; k < numeroBercos; k++) {
-        if (k == solucaoVizinha.atendimento[i]) continue;
+        if (k != solucaoVizinha.atendimentoNavios[i]) {
+          adicionarAtendimento(solucaoVizinha, k, i);
 
-        solucaoVizinha.atendimento[i] = k;
-        calcularFO(solucaoVizinha);
-        posicaoNaLista = procurarNaLista(listaTabu, i, k);
-
-        if (posicaoNaLista == -1) {
-          if (solucaoVizinha.tempoTotal < melhorTempo) {
-            flag = 1;
-            melhorPosicao = -1;
-            melhorTempo = solucaoVizinha.tempoTotal;
-            melhorBerco = k;
-            melhorNavio = i;
-          }
-        } else {
-          if (solucaoVizinha.tempoTotal < solucao.tempoTotal) {
-            flag = 0;
-            melhorPosicao = posicaoNaLista;
-            melhorTempo = solucaoVizinha.tempoTotal;
-            melhorBerco = k;
-            melhorNavio = i;
+          calcularFO(solucaoVizinha);
+          posicaoNaLista = procurarNaLista(listaTabu, i, k);
+          if (posicaoNaLista != -1) {
+            if (solucaoVizinha.tempoTotalAtendimento < solucao.tempoTotalAtendimento) {
+              flag = 0;
+              melhorTempo = solucaoVizinha.tempoTotalAtendimento;
+              melhorBerco = k;
+              melhorNavio = i;
+              melhorPosicao = posicaoNaLista;
+            }
+          } else {
+            if (solucaoVizinha.tempoTotalAtendimento < melhorTempo) {
+              flag = 1;
+              melhorTempo = solucaoVizinha.tempoTotalAtendimento;
+              melhorBerco = k;
+              melhorNavio = i;
+              melhorPosicao = -1;
+            }
           }
         }
       }
 
-      solucaoVizinha.atendimento[i] = bercoOriginal;
-      solucaoVizinha.tempoTotal = tempoOriginal;
+      adicionarAtendimento(solucaoVizinha, bercoOriginal, i);
+      solucaoVizinha.tempoTotalAtendimento = tempoOriginal;
     }
 
+    // --- atualiza a lista tabu
     if (flag == -1) {
       melhorBerco = listaTabu.bercos[0];
       melhorNavio = listaTabu.navios[0];
-      solucaoVizinha.atendimento[melhorNavio] = melhorBerco;
+      adicionarAtendimento(solucaoVizinha, melhorBerco, melhorNavio);
       calcularFO(solucaoVizinha);
       removerDaLista(listaTabu, 0);
     } else {
@@ -120,9 +126,13 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
       } else {
         inserirNaLista(listaTabu, melhorNavio, melhorBerco);
       }
-    }
 
-    if (solucaoVizinha.tempoTotal < solucao.tempoTotal) {
+      adicionarAtendimento(solucaoVizinha, melhorBerco, melhorNavio);
+      solucaoVizinha.tempoTotalAtendimento = melhorTempo;
+    }
+    // ---
+
+    if (solucaoVizinha.tempoTotalAtendimento < solucao.tempoTotalAtendimento) {
       clonarSolucao(solucaoVizinha, solucao);
       clockAtual = clock();
       momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
@@ -171,16 +181,47 @@ void inserirNaLista (ListaTabu &lista, const int navio, const int berco) {
   lista.quantidadeElementos++;
 }
 
+
+void removerAtendimento (Solucao &solucao, int berco, int navio) {
+  for (int l = 0; solucao.atendimentoBercos[berco][l] != -1; l++) {
+    if (solucao.atendimentoBercos[berco][l] == navio) {
+      for (int j = l; solucao.atendimentoBercos[berco][j] != -1; j++) {
+        solucao.atendimentoBercos[berco][l] = solucao.atendimentoBercos[berco][l + 1];
+      }
+
+      break;
+    }
+  }
+
+  solucao.atendimentoNavios[navio] = -1;
+}
+
+void adicionarAtendimento (Solucao &solucao, int berco, int navio) {
+  removerAtendimento(solucao, solucao.atendimentoNavios[navio], navio);
+
+  solucao.atendimentoNavios[navio] = berco;
+
+  int i = 0;
+  while (solucao.atendimentoBercos[berco][i] != -1) {
+    i++;
+  }
+
+  solucao.atendimentoBercos[berco][i] = navio;
+  solucao.atendimentoBercos[berco][i + 1] = -1;
+}
+
 void construtivaAleatoria(Solucao &solucao) {
-  int berco, limiteBusca;
+  int berco, limiteBusca, j;
 
   for (int k = 0; k < numeroBercos; k++) {
-    proximoHorarioDisponivelBerco[k] = aberturaFechamento[k][ABERTURA];
+    proximoHorarioDisponivelBerco[k] = aberturaFechamento[k][ABERTURA]; // inicializa horário de atendimento
+    solucao.atendimentoBercos[k][0] = -1; // nenhum berço atendeu a navios
   }
 
   limiteBusca = MAX(100, numeroBercos * numeroNavios);
 
   for (int i = 0; i < numeroNavios; i++) {
+    // encontra um berço para atender o navio i
     for (int l = 0; l < limiteBusca; l++) {
 
       berco = rand()%(numeroBercos);
@@ -191,40 +232,111 @@ void construtivaAleatoria(Solucao &solucao) {
         break;
       }
     }
+    // ----
 
-    solucao.atendimento[i] = berco;
+    solucao.atendimentoNavios[i] = berco;
 
+    // se o berço atendeu o navio i
     if (berco != -1) {
-      solucao.tempoAtracamento[i] = MAX(tempoChegadaNavio[i], proximoHorarioDisponivelBerco[berco]);
-      proximoHorarioDisponivelBerco[berco] = solucao.tempoAtracamento[i] + tempoAtendimento[berco][i];
+      // insere o atendimento do berço para o navio i
+      j = 0;
+      while(solucao.atendimentoBercos[berco][j] != -1) {
+        j++;
+      }
+
+      solucao.atendimentoBercos[berco][j] = i;
+      solucao.atendimentoBercos[berco][j + 1] = -1;
+      // ----
+
+      // calcula o momento de atracamento
+      solucao.momentoAtracamento[i] = MAX(momentoChegadaNavio[i], proximoHorarioDisponivelBerco[berco]);
+      proximoHorarioDisponivelBerco[berco] = solucao.momentoAtracamento[i] + tempoAtendimento[berco][i];
+      // ---
     }
   }
 }
 
 void calcularFO(Solucao &solucao) {
-    solucao.tempoTotal = 0;
+  int i, k, j; // variáveis de iteração - instanciândo uma única vez.
 
-    for(int i = 0; i < numeroNavios; i++) {
-      if (solucao.atendimento[i] != -1) {
-        solucao.tempoTotal += solucao.tempoAtracamento[i] - tempoChegadaNavio[i] + tempoAtendimento[solucao.atendimento[i]][i];
+  solucao.tempoTotalAtendimento = 0;
 
-        if (solucao.tempoAtracamento[i] < tempoChegadaNavio[i]) {
-         solucao.tempoTotal += PENALIDADE_ATRACAMENTO_IMPOSSIVEL;
+  for(i = 0; i < numeroNavios; i++) {
+    if (solucao.atendimentoNavios[i] != -1) {
+      if (tempoAtendimento[solucao.atendimentoNavios[i]][i] != 0) {
+        solucao.tempoTotalAtendimento += solucao.momentoAtracamento[i] - momentoChegadaNavio[i] + tempoAtendimento[solucao.atendimentoNavios[i]][i];
+
+        if (solucao.momentoAtracamento[i] < momentoChegadaNavio[i]) {
+          solucao.tempoTotalAtendimento += PENALIDADE_ATRACAMENTO_IMPOSSIVEL;
         } else {
-          if ((solucao.tempoAtracamento[i] + tempoAtendimento[solucao.atendimento[i]][i]) > tempoSaidaNavio[i]) {
-            solucao.tempoTotal += PENALIDADE_HORARIO_LIMITE_NAVIO;
+          if ((solucao.momentoAtracamento[i] + tempoAtendimento[solucao.atendimentoNavios[i]][i]) > momentoSaidaNavio[i]) {
+            solucao.tempoTotalAtendimento += PENALIDADE_HORARIO_LIMITE_NAVIO;
           }
         }
       } else {
-        solucao.tempoTotal += PENALIDADE_NAVIO_NAO_ATENDIDO;
+        solucao.tempoTotalAtendimento += PENALIDADE_ATENDIMENTO_IMPOSSIVEL;
       }
+    } else {
+      solucao.tempoTotalAtendimento += PENALIDADE_NAVIO_NAO_ATENDIDO;
+    }
+  }
+
+  int horarioInicioAtendimentoBase, horarioFimAtendimentoBase;
+  int horarioInicioAtendimento, horarioFimAtendimento;
+  for(k = 0; k < numeroBercos; k++) {
+    if ((proximoHorarioDisponivelBerco[k] - aberturaFechamento[k][FECHAMENTO]) > 0) {
+      solucao.tempoTotalAtendimento += PENALIDADE_HORARIO_LIMITE_BERCO;
     }
 
-    for(int k = 0; k < numeroBercos; k++) {
-      if ((proximoHorarioDisponivelBerco[k] - aberturaFechamento[k][FECHAMENTO]) > 0) {
-        solucao.tempoTotal += PENALIDADE_HORARIO_LIMITE_BERCO;
+    if (solucao.atendimentoBercos[k][0] != -1) {
+      for (i = 0; (i < numeroNavios && solucao.atendimentoBercos[k][i] != -1); i++) {
+        horarioInicioAtendimentoBase = solucao.momentoAtracamento[solucao.atendimentoBercos[k][i]];
+        horarioFimAtendimentoBase = solucao.momentoAtracamento[solucao.atendimentoBercos[k][i]] + tempoAtendimento[k][solucao.atendimentoBercos[k][i]];
+
+        j = i + 1;
+        while (solucao.atendimentoBercos[k][j] != -1) {
+          horarioInicioAtendimento = solucao.momentoAtracamento[solucao.atendimentoBercos[k][j]];
+          horarioFimAtendimento = solucao.momentoAtracamento[solucao.atendimentoBercos[k][j]] + tempoAtendimento[k][j];
+
+           /**
+            * - - - - - - - - - - - - - - - - -
+            *
+            * 1 - 100 150
+            * 2 -          160   180
+            *
+            * 1 - 100    150
+            * 2 -        150   180
+            *
+            * 1 -     110  150
+            * 2 - 70  110
+            *
+            * 1 -         110  150
+            * 2 - 70 100
+            *
+            * - - - - - - - - - - - - - - - - -
+            * 1 - 100     150
+            * 2 - 100 140
+            *
+            * 1 -     100 150
+            * 2 - 70          160
+            *
+            * 1 - 70          160
+            * 2 -     100 150
+            *
+            * --- condição pensada inicialmente ---
+            * ? !(horarioInicioAtendimento >= horarioFimAtendimentoBase || horarioFimAtendimento <= horarioInicioAtendimentoBase)
+            *
+            */
+
+          if (horarioInicioAtendimento < horarioFimAtendimentoBase && horarioFimAtendimento > horarioInicioAtendimentoBase) {
+            solucao.tempoTotalAtendimento += PENALIDADE_SOBREPOSICAO_HORARIO;
+          }
+
+          j++;
+        }
       }
     }
+  }
 }
 
 void clonarSolucao(Solucao &original, Solucao &copia) {
@@ -233,11 +345,15 @@ void clonarSolucao(Solucao &original, Solucao &copia) {
 
 void escreverSolucao(Solucao &solucao) {
   int numeroBercosUtilizados , numeroNaviosAtendidos;
-  int totalViolacaoNavios, totalViolacaoBercos;
-  int diferenca;
+  int totalViolacaoSaidaNavios, totalViolacaoFechamentoBercos;
+  int quantidadeViolacaoSaidaNavios, quantidadeViolacaoFechamentoBercos, quantidadeViolacaoSobreposicao;
+  int horarioInicioAtendimentoBase, horarioFimAtendimentoBase;
+  int horarioInicioAtendimento, horarioFimAtendimento;
+  int diferenca, j;
 
   numeroBercosUtilizados = numeroNaviosAtendidos = 0;
-  totalViolacaoBercos = totalViolacaoNavios = 0;
+  totalViolacaoFechamentoBercos = totalViolacaoSaidaNavios = 0;
+  quantidadeViolacaoSaidaNavios = quantidadeViolacaoFechamentoBercos = quantidadeViolacaoSobreposicao = 0;
 
   for (int k = 0; k < numeroBercos; k++) {
     if (proximoHorarioDisponivelBerco[k] - aberturaFechamento[k][ABERTURA] != 0) {
@@ -246,33 +362,57 @@ void escreverSolucao(Solucao &solucao) {
 
     diferenca = proximoHorarioDisponivelBerco[k] - aberturaFechamento[k][FECHAMENTO];
     if (diferenca > 0) {
-      totalViolacaoNavios += diferenca;
+      quantidadeViolacaoFechamentoBercos++;
+      totalViolacaoFechamentoBercos += diferenca;
     }
+
+    if (solucao.atendimentoBercos[k][0] != -1) {
+      for (int i = 0; (i < numeroNavios && solucao.atendimentoBercos[k][i] != -1); i++) {
+        horarioInicioAtendimentoBase = solucao.momentoAtracamento[solucao.atendimentoBercos[k][i]];
+        horarioFimAtendimentoBase = solucao.momentoAtracamento[solucao.atendimentoBercos[k][i]] + tempoAtendimento[k][solucao.atendimentoBercos[k][i]];
+
+        j = i + 1;
+        while (solucao.atendimentoBercos[k][j] != -1) {
+          horarioInicioAtendimento = solucao.momentoAtracamento[solucao.atendimentoBercos[k][j]];
+          horarioFimAtendimento = solucao.momentoAtracamento[solucao.atendimentoBercos[k][j]] + tempoAtendimento[k][j];
+
+          if (horarioInicioAtendimento < horarioFimAtendimentoBase && horarioFimAtendimento > horarioInicioAtendimentoBase) {
+            quantidadeViolacaoSobreposicao++;
+          }
+
+          j++;
+        }
+      }
+    };
   }
 
   for (int i = 0; i < numeroNavios; i++) {
-    if (solucao.atendimento[i] != -1) {
+    if (solucao.atendimentoNavios[i] != -1) {
       numeroNaviosAtendidos++;
     }
 
-    diferenca = solucao.tempoAtracamento[i] + tempoAtendimento[solucao.atendimento[i]][i] - tempoSaidaNavio[i];
+    diferenca = solucao.momentoAtracamento[i] + tempoAtendimento[solucao.atendimentoNavios[i]][i] - momentoSaidaNavio[i];
     if (diferenca > 0) {
-      totalViolacaoNavios += diferenca;
+      quantidadeViolacaoSaidaNavios++;
+      totalViolacaoSaidaNavios += diferenca;
     }
   }
 
   cout << "==== Solução ====" << endl;
   cout << "Número de berços utilizados.........................: " << numeroBercosUtilizados << endl;
   cout << "Número de navios atendidos..........................: " << numeroNaviosAtendidos << endl;
-  cout << "Total de viol. nas jan. de tempo dos bercos.........: " << totalViolacaoBercos << endl;
-  cout << "Total de viol. nas jan. de tempo dos navios.........: " << totalViolacaoNavios << endl;
-  cout << "Tempo total de operação.............................: " << solucao.tempoTotal << endl;
+  cout << "Total de viol. nas jan. de tempo dos bercos.........: " << totalViolacaoFechamentoBercos << endl;
+  cout << "Quantidade de viol. nas jan. de tempo dos bercos....: " << quantidadeViolacaoFechamentoBercos << endl;
+  cout << "Total de viol. nas jan. de tempo dos navios.........: " << totalViolacaoSaidaNavios << endl;
+  cout << "Quantidade de viol. nas jan. de tempo dos navios....: " << quantidadeViolacaoSaidaNavios << endl;
+  cout << "Quantidade de viol. de sobreposicao de horários.....: " << quantidadeViolacaoSobreposicao << endl;
+  cout << "Tempo total de operação.............................: " << solucao.tempoTotalAtendimento << endl;
 
   cout << endl << "Atendimentos: " << endl;
   for(int i = 0; i < numeroNavios; i++) {
-    cout << "Navio " << i + 1 << " -> berço " << solucao.atendimento[i] + 1 << ": ";
-    cout << "\tHA " << solucao.tempoAtracamento[i] << "\t";
-    cout << "HD " << solucao.tempoAtracamento[i] + tempoAtendimento[solucao.atendimento[i]][i];
+    cout << "Navio " << i + 1 << " -> berço " << solucao.atendimentoNavios[i] + 1 << ": ";
+    cout << "\tHA " << solucao.momentoAtracamento[i] << "\t";
+    cout << "HD " << solucao.momentoAtracamento[i] + tempoAtendimento[solucao.atendimentoNavios[i]][i];
     cout << endl;
   }
 }
@@ -293,11 +433,11 @@ void lerInstancia (char* nomeInstancia) {
   }
 
   for (int i = 0; i < numeroNavios; i++) {
-    fscanf(instancia, "%d", &tempoChegadaNavio[i]);
+    fscanf(instancia, "%d", &momentoChegadaNavio[i]);
   }
 
   for (int i = 0; i < numeroNavios; i++) {
-    fscanf(instancia, "%d", &tempoSaidaNavio[i]);
+    fscanf(instancia, "%d", &momentoSaidaNavio[i]);
   }
 }
 
@@ -315,7 +455,7 @@ void executarTestes (int repeticoes, char* nomeInstancia) {
 
   calcularFO(solucao);
 
-  cout << "Valor da FO: " << solucao.tempoTotal << endl;
+  cout << "Valor da FO: " << solucao.tempoTotalAtendimento << endl;
   cout << "Tempo para gerar solução: " << tempo << " seg." << endl;
 
   h = clock();
