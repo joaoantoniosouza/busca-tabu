@@ -76,8 +76,8 @@ void inserirAtendimento (Solucao &solucao, int berco, int navio) {
    * Exemplo explicativo
    * berco x - 1 4 8 6 9 10 7
    */
-  for (int i = solucao.atendimentoBercos[berco].tamanho; i > 1; i--) {
-    if (momentoChegadaNavio[navio] >= momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[i]]) {
+  for (int i = solucao.atendimentoBercos[berco].tamanho; i > 0; i--) {
+    if (momentoChegadaNavio[navio] >= momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[i - 1]]) {
       break;
     }
 
