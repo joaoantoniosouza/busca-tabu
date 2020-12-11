@@ -17,9 +17,6 @@ LIB =
 PAB_OBJ = pab.o
 PAB_EXE = pab
 
-SOLUCAO_OBJ = solucao.o
-SOLUCAO_EXE = solucao
-
 CXX = g++
 
 USER_FLAGS = -std=c++14
@@ -66,11 +63,6 @@ all: pab
 pab: $(OBJS) $(PAB_OBJ)
 	@echo "--> Linking objects... "
 	$(CXX) $(CXXFLAGS) $(OBJS) $(PAB_OBJ) -o $(PAB_EXE) $(LIB)
-	@echo
-
-solucao: $(OBJS) $(SOLUCAO_OBJ)
-	@echo "--> Linking objects... "
-	$(CXX) $(CXXFLAGS) $(OBJS) $(SOLUCAO_OBJ) -o $(SOLUCAO_EXE) $(LIB)
 	@echo
 
 .cpp.o:
