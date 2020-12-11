@@ -12,25 +12,26 @@ int main (int argc, char **argv) {
   return 0;
 }
 
-void lerInstancia () {
-  cin >> numeroNavios >> numeroBercos;
+void lerInstancia (char* nomeInstancia) {
+  FILE* instancia = fopen(nomeInstancia, "r");
+
+  fscanf(instancia, "%d %d", &numeroNavios, &numeroBercos);
 
   for (int k = 0; k < numeroBercos; k++) {
     for (int i = 0; i < numeroNavios; i++ ) {
-      cin >> duracaoAtendimento[k][i];
+      fscanf(instancia, "%d", &duracaoAtendimento[k][i]);
     }
   }
 
   for (int k = 0; k < numeroBercos; k++) {
-    cin >> aberturaFechamento[k][ABERTURA] >> aberturaFechamento[k][FECHAMENTO];
-    proximoHorarioDisponivelBerco[k] = aberturaFechamento[k][ABERTURA];
+    fscanf(instancia, "%d %d", &aberturaFechamento[k][ABERTURA], &aberturaFechamento[k][FECHAMENTO]);
   }
 
   for (int i = 0; i < numeroNavios; i++) {
-    cin >> momentoChegadaNavio[i];
+    fscanf(instancia, "%d", &momentoChegadaNavio[i]);
   }
 
   for (int i = 0; i < numeroNavios; i++) {
-    cin >> momentoSaidaNavio[i];
+    fscanf(instancia, "%d", &momentoSaidaNavio[i]);
   }
 }
