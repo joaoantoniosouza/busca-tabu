@@ -33,7 +33,7 @@ typedef struct _solucao {
 
 void lerInstancia ();
 void inserirAtendimento (Solucao &solucao, int berco, int navio);
-void removerAtendimento (Solucao &solucao, int berco, int navio);
+void removerAtendimento (Solucao &solucao, int navio);
 void construtivaAleatoria (Solucao &solucao);
 void calcularFO (Solucao &solucao);
 void escreverSolucao (Solucao &solucao);
