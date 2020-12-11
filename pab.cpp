@@ -149,6 +149,8 @@ void clonarSolucao (Solucao &original, Solucao &copia) {
 void escreverSolucao (Solucao &solucao) {
   int numeroBercosUtilizados , numeroNaviosAtendidos;
   int totalViolacaoNavios, totalViolacaoBercos;
+  int violacaoNavios[MAX_BERCOS], violacaoBercos[MAX_BERCOS], foBerco[MAX_BERCOS];
+  int proximoHorarioDisponivelBerco, momentoAtracamentoNavio, navio;
 
   numeroBercosUtilizados = numeroNaviosAtendidos = 0;
   totalViolacaoBercos = totalViolacaoNavios = 0;
@@ -165,6 +167,29 @@ void escreverSolucao (Solucao &solucao) {
     }
   }
 
+  for (int k = 0; k < numeroBercos; k++) {
+    proximoHorarioDisponivelBerco = aberturaFechamento[k][ABERTURA];
+
+    violacaoNavios[k] = violacaoBercos[k] = foBerco[k] = 0;
+    for (int i = 0; i < solucao.atendimentoBercos[k].tamanho; i++) {
+      navio = solucao.atendimentoBercos[k].navios[i];
+      momentoAtracamentoNavio = MAX(proximoHorarioDisponivelBerco, momentoChegadaNavio[navio]);
+      proximoHorarioDisponivelBerco = momentoAtracamentoNavio + duracaoAtendimento[k][navio];
+
+      foBerco[k] += momentoAtracamentoNavio - momentoChegadaNavio[navio] + duracaoAtendimento[k][navio];
+
+      if (proximoHorarioDisponivelBerco > momentoSaidaNavio[navio]) {
+        totalViolacaoNavios += MAX(proximoHorarioDisponivelBerco - momentoSaidaNavio[navio], 0);
+        violacaoNavios[k] += MAX(proximoHorarioDisponivelBerco - momentoSaidaNavio[navio], 0);
+      }
+    }
+
+    if (proximoHorarioDisponivelBerco > aberturaFechamento[k][FECHAMENTO]) {
+      totalViolacaoBercos += MAX(proximoHorarioDisponivelBerco - aberturaFechamento[k][FECHAMENTO], 0);
+      violacaoBercos[k] += MAX(proximoHorarioDisponivelBerco - aberturaFechamento[k][FECHAMENTO], 0);
+    }
+  }
+
   cout << "==== Solução ====" << endl;
   cout << "Número de berços utilizados.........................: " << numeroBercosUtilizados << endl;
   cout << "Número de navios atendidos..........................: " << numeroNaviosAtendidos << endl;
@@ -173,9 +198,20 @@ void escreverSolucao (Solucao &solucao) {
   cout << "Tempo total de operação.............................: " << solucao.tempoAtendimentoTotal << endl;
 
   cout << endl << "Atendimentos: " << endl;
-  for(int i = 0; i < numeroNavios; i++) {
-    cout << "Navio " << i + 1 << " -> berço " << solucao.atendimentoNavios[i] + 1 << ": ";
-    cout << endl;
+  for (int k = 0; k < numeroBercos; k++) {
+    cout << "Berco " << k + 1 << ":" << endl;
+    cout << "  Número de navios atendidos..................: " << solucao.atendimentoBercos[k].tamanho << endl;
+    cout << "  Horário de abertura.........................: " << aberturaFechamento[k][ABERTURA] << endl;
+    cout << "  Horário de fechamento.......................: " << aberturaFechamento[k][FECHAMENTO] << endl;
+    cout << "  Violações nas janelas de tempo do berco.....: " << violacaoBercos[k] << endl;
+    cout << "  Violações nas janelas de tempo dos navios...: " << violacaoNavios[k] << endl;
+    cout << "  FO do berco.................................: " << foBerco[k] << endl;
+
+    cout << "  Sequencia de atendimento: I -> ";
+    for (int i = 0; i < solucao.atendimentoBercos[k].tamanho; i++) {
+      cout << solucao.atendimentoBercos[k].navios[i] << " -> ";
+    }
+    cout << "F" << endl << endl;
   }
 }
 
