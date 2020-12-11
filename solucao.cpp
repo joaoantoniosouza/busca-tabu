@@ -4,29 +4,6 @@
 
 using namespace std;
 
-void lerInstancia () {
-  cin >> numeroNavios >> numeroBercos;
-
-  for (int k = 0; k < numeroBercos; k++) {
-    for (int i = 0; i < numeroNavios; i++ ) {
-      cin >> duracaoAtendimento[k][i];
-    }
-  }
-
-  for (int k = 0; k < numeroBercos; k++) {
-    cin >> aberturaFechamento[k][ABERTURA] >> aberturaFechamento[k][FECHAMENTO];
-    proximoHorarioDisponivelBerco[k] = aberturaFechamento[k][ABERTURA];
-  }
-
-  for (int i = 0; i < numeroNavios; i++) {
-    cin >> momentoChegadaNavio[i];
-  }
-
-  for (int i = 0; i < numeroNavios; i++) {
-    cin >> momentoSaidaNavio[i];
-  }
-}
-
 void clonarSolucao(Solucao &original, Solucao &copia) {
   memcpy(&copia, &original, sizeof(original));
 }
