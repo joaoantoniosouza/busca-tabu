@@ -14,38 +14,164 @@ int main (int argc, char **argv) {
   Solucao solucao;
 
   #ifdef DEBUG
-    lerInstancia("./instancias/i01.txt");
+    lerInstancia("./instancias/i03.txt");
   #else
-    if (argc != 2) {
-      cout << "#ERRO: Informe corretamente o caminho para a instância..." << endl;
+    if (argc != 3) {
+      cout << "#ERRO: Informe os parâmetros corretamente" << endl;
+      cout << " $ ./exe caminho_intancia tempo_processamento" << endl;
       return 0;
     }
 
     lerInstancia(argv[1]);
   #endif
 
-  // lerInstancia(argv[1]);
-  int seed, menorTempo, melhorSeed;
-  menorTempo = INT_MAX;
-  for(int i = 0; i < 10000; i++) {
-    seed = time(NULL);
-    srand(i);
-    heuristicaConstrutiva(solucao);
-    calcularFO(solucao);
-
-    if (solucao.tempoAtendimentoTotal < menorTempo) {
-      menorTempo = solucao.tempoAtendimentoTotal;
-      melhorSeed = i;
-    }
-  }
-
-  srand(melhorSeed);
-  heuristicaConstrutiva(solucao);
-  calcularFO(solucao);
+  double tempoTotal, momentoMelhorSolucao;
+  buscaTabu(solucao, 100000, 15, tempoTotal, momentoMelhorSolucao);
+  cout << "Tempo total: " << tempoTotal << endl;
+  cout << "Momento melhor solucao: " << momentoMelhorSolucao << endl;
   escreverSolucao(solucao);
 
   return 0;
 }
+
+// --- busca tabu
+void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaximo, double &tempoTotal, double &momentoMelhorSolucao) {
+  cout << "Executando busca tabu..." << endl;
+
+  clock_t clockInicial, clockAtual;
+  Solucao solucaoVizinha;
+
+  // gerando solução inicial
+  clockInicial = clock();
+  heuristicaConstrutiva(solucao);
+  calcularFO(solucao);
+  clockAtual = clock();
+
+  printf("Solução inicial: %d\n", solucao.tempoAtendimentoTotal);
+
+  momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
+  tempoTotal = momentoMelhorSolucao;
+
+  clonarSolucao(solucao, solucaoVizinha);
+
+  // ---- lista tabu - berco 0, navio 1
+  ListaTabu listaTabu;
+  listaTabu.bercos = new int[tamanhoLista];
+  listaTabu.navios = new int[tamanhoLista];
+  listaTabu.quantidadeElementos = 0;
+  listaTabu.tamanho = tamanhoLista;
+
+  int bercoOriginal, tempoOriginal;
+  int melhorTempo, melhorNavio, melhorBerco, melhorPosicao;
+  int flag, posicaoNaLista;
+
+  while(tempoTotal < tempoMaximo) {
+    melhorTempo = INT_MAX;
+
+    flag = -1;
+    for (int i = 0; i < numeroNavios; i++) {
+      bercoOriginal = solucaoVizinha.atendimentoNavios[i];
+      tempoOriginal = solucaoVizinha.tempoAtendimentoTotal;
+
+      // ! porque k = -1?
+      for (int k = 0; k < numeroBercos; k++) {
+        if (k != solucaoVizinha.atendimentoNavios[i] && duracaoAtendimento[k][i] != 0) {
+          inserirAtendimento(solucaoVizinha, k, i);
+
+          calcularFO(solucaoVizinha);
+          posicaoNaLista = procurarNaLista(listaTabu, i, k);
+          if (posicaoNaLista != -1) {
+            if (solucaoVizinha.tempoAtendimentoTotal < solucao.tempoAtendimentoTotal) {
+              flag = 0;
+              melhorTempo = solucaoVizinha.tempoAtendimentoTotal;
+              melhorBerco = k;
+              melhorNavio = i;
+              melhorPosicao = posicaoNaLista;
+            }
+          } else {
+            if (solucaoVizinha.tempoAtendimentoTotal < melhorTempo) {
+              flag = 1;
+              melhorTempo = solucaoVizinha.tempoAtendimentoTotal;
+              melhorBerco = k;
+              melhorNavio = i;
+              melhorPosicao = -1;
+            }
+          }
+        }
+      }
+
+      inserirAtendimento(solucaoVizinha, bercoOriginal, i);
+      solucaoVizinha.tempoAtendimentoTotal = tempoOriginal;
+    }
+
+    // --- atualiza a lista tabu
+    if (flag == -1) {
+      melhorBerco = listaTabu.bercos[0];
+      melhorNavio = listaTabu.navios[0];
+      inserirAtendimento(solucaoVizinha, melhorBerco, melhorNavio);
+      calcularFO(solucaoVizinha);
+      removerDaLista(listaTabu, 0);
+    } else {
+      if (flag == 0) {
+        removerDaLista(listaTabu, melhorPosicao);
+      } else {
+        inserirNaLista(listaTabu, melhorNavio, melhorBerco);
+      }
+
+      inserirAtendimento(solucaoVizinha, melhorBerco, melhorNavio);
+      solucaoVizinha.tempoAtendimentoTotal = melhorTempo;
+    }
+    // ---
+
+    if (solucaoVizinha.tempoAtendimentoTotal < solucao.tempoAtendimentoTotal) {
+      clonarSolucao(solucaoVizinha, solucao);
+      clockAtual = clock();
+      momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
+    }
+
+    // ----
+    clockAtual = clock();
+    tempoTotal = calcularTempo(clockInicial, clockAtual);
+  }
+
+  delete[] listaTabu.bercos;
+  delete[] listaTabu.navios;
+}
+
+double calcularTempo (clock_t &clockInicial, clock_t &clockAtual) {
+  return (double)(clockAtual - clockInicial) / CLOCKS_PER_SEC;
+}
+
+int procurarNaLista (ListaTabu &lista, const int navio, const int berco) {
+  for (int i = 0; i < lista.tamanho; i++) {
+    if (lista.bercos[i] == berco && lista.navios[i] == navio) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+void removerDaLista (ListaTabu &lista, const int posicao) {
+  for (int i = posicao; i < lista.tamanho; i++) {
+    lista.bercos[i] = lista.bercos[i + 1];
+    lista.navios[i] = lista.navios[i + 1];
+  }
+
+  lista.quantidadeElementos--;
+}
+
+void inserirNaLista (ListaTabu &lista, const int navio, const int berco) {
+  // se a lista estiver cheia remove o primeiro elemento que entrou (FIFO)
+  if (lista.quantidadeElementos == lista.tamanho) {
+    removerDaLista(lista, 0);
+  }
+
+  lista.bercos[lista.quantidadeElementos] = berco;
+  lista.navios[lista.quantidadeElementos] = navio;
+  lista.quantidadeElementos++;
+}
+// ---
 
 void heuristicaConstrutiva (Solucao &solucao) {
   int berco, limiteBusca;
@@ -121,6 +247,7 @@ void removerAtendimento (Solucao &solucao, int navioARemover) {
 }
 
 void inserirAtendimento (Solucao &solucao, int berco, int navio) {
+  int navioAtendido;
   removerAtendimento(solucao, navio);
 
   solucao.atendimentoNavios[navio] = berco;
@@ -131,12 +258,23 @@ void inserirAtendimento (Solucao &solucao, int berco, int navio) {
    * berco x - 1 4 8 6 9 10 7
    */
   for (int i = solucao.atendimentoBercos[berco].tamanho; i > 0; i--) {
-    if (momentoChegadaNavio[navio] >= momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[i - 1]]) {
+    navioAtendido = solucao.atendimentoBercos[berco].navios[i - 1];
+
+    if (momentoChegadaNavio[navio] < momentoChegadaNavio[navioAtendido]) {
+      solucao.atendimentoBercos[berco].navios[i] = navioAtendido;
+      solucao.atendimentoBercos[berco].navios[i - 1] = navio;
+    } else {
+      if (momentoChegadaNavio[navio] == momentoChegadaNavio[navioAtendido]) {
+        if (duracaoAtendimento[berco][navio] < duracaoAtendimento[berco][navioAtendido]) {
+          solucao.atendimentoBercos[berco].navios[i] = navioAtendido;
+          solucao.atendimentoBercos[berco].navios[i - 1] = navio;
+        } else {
+          solucao.atendimentoBercos[berco].navios[i] = navio;
+          solucao.atendimentoBercos[berco].navios[i - 1] = navioAtendido;
+        }
+      }
       break;
     }
-
-    solucao.atendimentoBercos[berco].navios[i] = solucao.atendimentoBercos[berco].navios[i - 1];
-    solucao.atendimentoBercos[berco].navios[i - 1] = navio;
   }
 
   solucao.atendimentoBercos[berco].tamanho++;

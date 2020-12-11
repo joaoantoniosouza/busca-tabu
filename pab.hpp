@@ -28,6 +28,13 @@ typedef struct _solucao {
   AtendimentoBerco atendimentoBercos[MAX_BERCOS];
 } Solucao;
 
+typedef struct _listaTabu {
+  int tamanho;
+  int quantidadeElementos;
+  int* bercos;
+  int* navios;
+} ListaTabu;
+
 void lerInstancia (char* instancia);
 void inserirAtendimento (Solucao &solucao, int berco, int navio);
 void removerAtendimento (Solucao &solucao, int navio);
@@ -36,5 +43,11 @@ void calcularFO (Solucao &solucao);
 void escreverSolucao (Solucao &solucao);
 void clonarSolucao (Solucao &original, Solucao &copia);
 void executarTestes (int repeticoes);
+
+void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaximo, double &tempoTotal, double &momentoMelhorSolucao);
+void removerDaLista (ListaTabu &lista, const int posicao);
+void inserirNaLista (ListaTabu &lista, const int navio, const int berco);
+int procurarNaLista (ListaTabu &lista, const int navio, const int berco);
+double calcularTempo (clock_t &clockInicial, clock_t &clockAtual);
 
 #endif
