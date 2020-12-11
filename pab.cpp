@@ -1,23 +1,45 @@
 #include <iostream>
 #include <string>
 #include <memory.h>
+#include <climits>
 #include "pab.hpp"
 
 using namespace std;
 
 #define MAX(X,Y) ((X > Y) ? X : Y)
 
+#define DEBUG
+
 int main (int argc, char **argv) {
   Solucao solucao;
 
-  // if (argc != 2) {
-  //   cout << "#ERRO: Informe corretamente o caminho para a instância..." << endl;
-  //   return 0;
-  // }
+  #ifdef DEBUG
+    lerInstancia("./instancias/i01.txt");
+  #else
+    if (argc != 2) {
+      cout << "#ERRO: Informe corretamente o caminho para a instância..." << endl;
+      return 0;
+    }
 
-  lerInstancia("./instancias/i01.txt");
+    lerInstancia(argv[1]);
+  #endif
+
   // lerInstancia(argv[1]);
-srand(time(NULL));
+  int seed, menorTempo, melhorSeed;
+  menorTempo = INT_MAX;
+  for(int i = 0; i < 10000; i++) {
+    seed = time(NULL);
+    srand(i);
+    heuristicaConstrutiva(solucao);
+    calcularFO(solucao);
+
+    if (solucao.tempoAtendimentoTotal < menorTempo) {
+      menorTempo = solucao.tempoAtendimentoTotal;
+      melhorSeed = i;
+    }
+  }
+
+  srand(melhorSeed);
   heuristicaConstrutiva(solucao);
   calcularFO(solucao);
   escreverSolucao(solucao);
@@ -54,18 +76,10 @@ void calcularFO(Solucao &solucao) {
   int navio, proximoHorarioDisponivelBerco, momentoAtracamentoNavio;
   solucao.tempoAtendimentoTotal = 0;
 
-  /**
-   * B1 - 1 2 3
-   */
-
   for (int k = 0; k < numeroBercos; k++) {
-    navio = solucao.atendimentoBercos[k].navios[0];
-    momentoAtracamentoNavio = MAX(aberturaFechamento[k][ABERTURA], momentoChegadaNavio[navio]);
-    proximoHorarioDisponivelBerco = momentoAtracamentoNavio + duracaoAtendimento[k][navio];
+    proximoHorarioDisponivelBerco = aberturaFechamento[k][ABERTURA];
 
-    solucao.tempoAtendimentoTotal += momentoAtracamentoNavio - momentoChegadaNavio[navio] + duracaoAtendimento[k][navio];
-
-    for (int i = 1; i < solucao.atendimentoBercos[k].tamanho; i++) {
+    for (int i = 0; i < solucao.atendimentoBercos[k].tamanho; i++) {
       navio = solucao.atendimentoBercos[k].navios[i];
       momentoAtracamentoNavio = MAX(proximoHorarioDisponivelBerco, momentoChegadaNavio[navio]);
       proximoHorarioDisponivelBerco = momentoAtracamentoNavio + duracaoAtendimento[k][navio];
@@ -85,19 +99,21 @@ void calcularFO(Solucao &solucao) {
 
 void removerAtendimento (Solucao &solucao, int navioARemover) {
   int berco = solucao.atendimentoNavios[navioARemover];
-  int navio;
+  int navio, aux;
 
   if (berco != -1) {
     /**
      * Exemplo explicativo
-     * berco x - 1 4 8 6 10 7
+     * berco x - 1 4 8 6 10 7 0
      */
-    for (int i = solucao.atendimentoBercos[berco].tamanho; i > 1; i--) {
+    int i = solucao.atendimentoBercos[berco].tamanho - 1;
+    navio = -1;
+    do {
+      aux = navio;
       navio = solucao.atendimentoBercos[berco].navios[i];
-      solucao.atendimentoBercos[berco].navios[i] = solucao.atendimentoBercos[berco].navios[i + 1];
-
-      if (navio == navioARemover) break;
-    }
+      solucao.atendimentoBercos[berco].navios[i] = aux;
+      i--;
+    } while (navio != navioARemover);
 
     solucao.atendimentoBercos[berco].tamanho--;
     solucao.atendimentoNavios[navioARemover] = -1;
