@@ -31,7 +31,7 @@ typedef struct _solucao {
   AtendimentoBerco atendimentoBercos[MAX_BERCOS];
 } Solucao;
 
-void lerInstancia ();
+void lerInstancia (char* instancia);
 void inserirAtendimento (Solucao &solucao, int berco, int navio);
 void removerAtendimento (Solucao &solucao, int navio);
 void construtivaAleatoria (Solucao &solucao);

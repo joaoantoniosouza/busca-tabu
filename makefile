@@ -35,7 +35,7 @@ endif
 
 # Enabling debug mode (printf)
 ifeq ($(DBG), on)
-	USER_FLAGS += -DDBG
+	USER_FLAGS += -D DEBUG
 endif
 
 
@@ -55,7 +55,7 @@ endif
 
 CXXFLAGS = $(USER_FLAGS)
 
-.PHONY: all
+.PHONY: all debug
 .SUFFIXES: .cpp .o
 
 all: pab
