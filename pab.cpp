@@ -13,17 +13,36 @@ int main (int argc, char **argv) {
   #else
     if (argc != 2) {
       cout << "#ERRO: Informe corretamente o caminho para a instância..." << endl;
+      return 0;
     }
 
     lerInstancia(argv[1]);
 		heuristicaConstrutiva(solucao);
+    escreverSolucao(solucao);
   #endif
 
   return 0;
 }
 
 void heuristicaConstrutiva (Solucao &solucao) {
-	printf("%d", solucao.tempoTotal);
+  int berco, limiteBusca;
+
+  limiteBusca = MAX(100, numeroBercos * numeroNavios);
+
+  for (int i = 0; i < numeroNavios; i++) {
+    for (int l = 0; l < limiteBusca; l++) {
+
+      berco = rand()%(numeroBercos);
+
+      if (duracaoAtendimento[berco][i] == 0) {
+        berco = -1;
+      } else {
+        break;
+      }
+    }
+
+    inserirAtendimento(solucao, berco, i);
+  }
 }
 
 void removerAtendimento (Solucao &solucao, int navioARemover) {
@@ -74,49 +93,36 @@ void clonarSolucao (Solucao &original, Solucao &copia) {
 }
 
 void escreverSolucao (Solucao &solucao) {
-  // int numeroBercosUtilizados , numeromNaviosAtendidos;
-  // int totalViolacaoNavios, totalViolacaoBercos;
-  // int diferenca;
+  int numeroBercosUtilizados , numeroNaviosAtendidos;
+  int totalViolacaoNavios, totalViolacaoBercos;
+  int diferenca;
 
-  // numeroBercosUtilizados = numeroNaviosAtendidos = 0;
-  // totalViolacaoBercos = totalViolacaoNavios = 0;
+  numeroBercosUtilizados = numeroNaviosAtendidos = 0;
+  totalViolacaoBercos = totalViolacaoNavios = 0;
 
-  // for (int k = 0; k < numeroBercos; k++) {
-  //   if (proximoHorarioDisponivelBerco[k] - aberturaFechamento[k][ABERTURA] != 0) {
-  //     numeroBercosUtilizados++;
-  //   }
+  for (int k = 0; k < numeroBercos; k++) {
+    if (proximoHorarioDisponivelBerco[k] - aberturaFechamento[k][ABERTURA] != 0) {
+      numeroBercosUtilizados++;
+    }
 
-  //   diferenca = proximoHorarioDisponivelBerco[k] - aberturaFechamento[k][FECHAMENTO];
-  //   if (diferenca > 0) {
-  //     totalViolacaoNavios += diferenca;
-  //   }
-  // }
+    diferenca = proximoHorarioDisponivelBerco[k] - aberturaFechamento[k][FECHAMENTO];
+    if (diferenca > 0) {
+      totalViolacaoNavios += diferenca;
+    }
+  }
 
-  // for (int i = 0; i < numeroNavios; i++) {
-  //   if (solucao.atendimentoNavios[i] != -1) {
-  //     numeroNaviosAtendidos++;
-  //   }
+  cout << "==== Solução ====" << endl;
+  cout << "Número de berços utilizados.........................: " << numeroBercosUtilizados << endl;
+  cout << "Número de navios atendidos..........................: " << numeroNaviosAtendidos << endl;
+  cout << "Total de viol. nas jan. de tempo dos bercos.........: " << totalViolacaoBercos << endl;
+  cout << "Total de viol. nas jan. de tempo dos navios.........: " << totalViolacaoNavios << endl;
+  cout << "Tempo total de operação.............................: " << solucao.tempoTotal << endl;
 
-  //   diferenca = solucao.tempoAtracamento[i] + duracaoAtendimento[solucao.atendimento[i]][i] - momentoSaidaNavio[i];
-  //   if (diferenca > 0) {
-  //     totalViolacaoNavios += diferenca;
-  //   }
-  // }
-
-  // cout << "==== Solução ====" << endl;
-  // cout << "Número de berços utilizados.........................: " << numeroBercosUtilizados << endl;
-  // cout << "Número de navios atendidos..........................: " << numeroNaviosAtendidos << endl;
-  // cout << "Total de viol. nas jan. de tempo dos bercos.........: " << totalViolacaoBercos << endl;
-  // cout << "Total de viol. nas jan. de tempo dos navios.........: " << totalViolacaoNavios << endl;
-  // cout << "Tempo total de operação.............................: " << solucao.tempoTotal << endl;
-
-  // cout << endl << "Atendimentos: " << endl;
-  // for(int i = 0; i < numeroNavios; i++) {
-  //   cout << "Navio " << i + 1 << " -> berço " << solucao.atendimento[i] + 1 << ": ";
-  //   cout << "\tHA " << solucao.tempoAtracamento[i] << "\t";
-  //   cout << "HD " << solucao.tempoAtracamento[i] + duracaoAtendimento[solucao.atendimento[i]][i];
-  //   cout << endl;
-  // }
+  cout << endl << "Atendimentos: " << endl;
+  for(int i = 0; i < numeroNavios; i++) {
+    cout << "Navio " << i + 1 << " -> berço " << solucao.atendimentoNavios[i] + 1 << ": ";
+    cout << endl;
+  }
 }
 
 void lerInstancia (char* nomeInstancia) {
