@@ -20,6 +20,8 @@ int momentoSaidaNavio[MAX_NAVIOS];
 int aberturaFechamento[MAX_BERCOS][2];
 int proximoHorarioDisponivelBerco[MAX_BERCOS];
 
+#define MAX(X,Y) ((X > Y) ? X : Y)
+
 typedef struct _atendimentoBerco {
   int tamanho;
   int navios[MAX_NAVIOS];
@@ -34,7 +36,7 @@ typedef struct _solucao {
 void lerInstancia (char* instancia);
 void inserirAtendimento (Solucao &solucao, int berco, int navio);
 void removerAtendimento (Solucao &solucao, int navio);
-void construtivaAleatoria (Solucao &solucao);
+void heuristicaConstrutiva (Solucao &solucao);
 void calcularFO (Solucao &solucao);
 void escreverSolucao (Solucao &solucao);
 void clonarSolucao (Solucao &original, Solucao &copia);
