@@ -18,9 +18,6 @@ int momentoSaidaNavio[MAX_NAVIOS];
 #define ABERTURA 0
 #define FECHAMENTO 1
 int aberturaFechamento[MAX_BERCOS][2];
-int proximoHorarioDisponivelBerco[MAX_BERCOS];
-
-#define MAX(X,Y) ((X > Y) ? X : Y)
 
 typedef struct _atendimentoBerco {
   int tamanho;
@@ -28,7 +25,7 @@ typedef struct _atendimentoBerco {
 } AtendimentoBerco;
 
 typedef struct _solucao {
-  int tempoTotal;
+  int tempoAtendimentoTotal;
   int atendimentoNavios[MAX_NAVIOS];
   AtendimentoBerco atendimentoBercos[MAX_BERCOS];
 } Solucao;
