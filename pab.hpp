@@ -37,14 +37,14 @@ void heuristicaConstrutiva (Solucao &solucao);
 void calcularFO (Solucao &solucao);
 int calcularFoBerco (Solucao &solucao, int berco);
 
-void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaximo, double &tempoTotal, double &momentoMelhorSolucao);
+void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaximo, double &tempoTotal, double &momentoMelhorSolucao, int &solucaoInicial);
 void removerDaLista (int **lista, int &quantidadeElementos, const int posicao);
 void inserirNaLista (int **lista, int &quantidadeElementos, int tamanho, const int navio, const int berco);
 int procurarNaLista (int **lista, int quantidadeElementos, const int navio, const int berco);
 double calcularTempo (clock_t &clockInicial, clock_t &clockAtual);
 
 void escreverCabecalhoLog (char *instancia);
-void atualizarExecucaoLog (Solucao &solucao, int seed, double tempoTotal, double tempoMelhor);
+void atualizarExecucaoLog (Solucao &solucao, int seed, double tempoTotal, double tempoMelhor, int solucaoInicial);
 void escreverMediasLog (int numeroExecucoes, int melhorFo, int somaFO, double tempoSoma, double melhorTempoSoma);
 
 void lerInstancia (char* instancia);

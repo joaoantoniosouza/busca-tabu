@@ -89,18 +89,18 @@ void escreverMediasLog (int numeroExecucoes, int melhorFo, int somaFo, double te
 void escreverCabecalhoLog (char *instancia) {
   FILE* logFile = fopen("log", "a");
   fprintf(logFile, "INSTÂNCIA: %s\n\n", instancia);
-  fprintf(logFile, "FO\t\tTEMPO TOTAL\t\tTEMPO MELHOR\tSEED\n");
+  fprintf(logFile, "SOLUÇÃO INICIAL\t\tFO\t\t\tTEMPO TOTAL\t\tTEMPO MELHOR\t\tSEED\n");
   fclose(logFile);
 }
 
-void atualizarExecucaoLog (Solucao &solucao, int seed, double tempoTotal, double tempoMelhor) {
+void atualizarExecucaoLog (Solucao &solucao, int seed, double tempoTotal, double tempoMelhor, int solucaoInicial) {
   FILE* logFile = fopen("log", "a");
-  fprintf(logFile, "%d\t%f\t\t\t%f\t\t\t%d\n", solucao.tempoAtendimentoTotal, tempoTotal, tempoMelhor, seed);
+  fprintf(logFile, "%d\t\t\t\t\t\t\t%d\t\t%f\t\t\t%f\t\t\t\t%d\n", solucaoInicial, solucao.tempoAtendimentoTotal, tempoTotal, tempoMelhor, seed);
   fclose(logFile);
 }
 
 // --- busca tabu
-void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaximo, double &tempoTotal, double &momentoMelhorSolucao) {
+void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaximo, double &tempoTotal, double &momentoMelhorSolucao, int &solucaoInicial) {
   cout << "-> Executando busca tabu" << endl;
 
   clock_t clockInicial, clockAtual;
@@ -112,10 +112,11 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
   calcularFO(solucao);
   clockAtual = clock();
 
-  cout << "-> Solução inicial: " << solucao.tempoAtendimentoTotal << endl << endl;
-
   momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
   tempoTotal = momentoMelhorSolucao;
+
+  solucaoInicial = solucao.tempoAtendimentoTotal;
+  cout << "-> Solução inicial: " << solucaoInicial << endl << endl;
 
   clonarSolucao(solucao, solucaoVizinha);
 
