@@ -86,11 +86,10 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
   clonarSolucao(solucao, solucaoVizinha);
 
   // ---- lista tabu - berco 0, navio 1
-  ListaTabu listaTabu;
-  listaTabu.bercos = new int[tamanhoLista];
-  listaTabu.navios = new int[tamanhoLista];
-  listaTabu.quantidadeElementos = 0;
-  listaTabu.tamanho = tamanhoLista;
+  int quantidadeElementosLista = 0;
+  int **listaTabu = new int*[2];
+  listaTabu[0] = new int[tamanhoLista];
+  listaTabu[1] = new int[tamanhoLista];
 
   int bercoOriginal, tempoOriginal;
   int melhorTempo, melhorNavio, melhorBerco, melhorPosicao;
@@ -110,7 +109,7 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
           inserirAtendimento(solucaoVizinha, k, i);
 
           calcularFO(solucaoVizinha);
-          posicaoNaLista = procurarNaLista(listaTabu, i, k);
+          posicaoNaLista = procurarNaLista(listaTabu, quantidadeElementosLista, k, i);
           if (posicaoNaLista != -1) {
             if (solucaoVizinha.tempoAtendimentoTotal < solucao.tempoAtendimentoTotal) {
               flag = 0;
@@ -137,16 +136,16 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
 
     // --- atualiza a lista tabu
     if (flag == -1) {
-      melhorBerco = listaTabu.bercos[0];
-      melhorNavio = listaTabu.navios[0];
+      melhorBerco = listaTabu[0][0];
+      melhorNavio = listaTabu[1][0];
       inserirAtendimento(solucaoVizinha, melhorBerco, melhorNavio);
       calcularFO(solucaoVizinha);
-      removerDaLista(listaTabu, 0);
+      removerDaLista(listaTabu, quantidadeElementosLista, 0);
     } else {
       if (flag == 0) {
-        removerDaLista(listaTabu, melhorPosicao);
+        removerDaLista(listaTabu, quantidadeElementosLista, melhorPosicao);
       } else {
-        inserirNaLista(listaTabu, melhorNavio, melhorBerco);
+        inserirNaLista(listaTabu, quantidadeElementosLista, tamanhoLista, melhorNavio, melhorBerco);
       }
 
       inserirAtendimento(solucaoVizinha, melhorBerco, melhorNavio);
@@ -165,17 +164,17 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
     tempoTotal = calcularTempo(clockInicial, clockAtual);
   }
 
-  delete[] listaTabu.bercos;
-  delete[] listaTabu.navios;
+  delete[] listaTabu[0];
+  delete[] listaTabu[1];
 }
 
 double calcularTempo (clock_t &clockInicial, clock_t &clockAtual) {
   return (double)(clockAtual - clockInicial) / CLOCKS_PER_SEC;
 }
 
-int procurarNaLista (ListaTabu &lista, const int navio, const int berco) {
-  for (int i = 0; i < lista.quantidadeElementos; i++) {
-    if (lista.bercos[i] == berco && lista.navios[i] == navio) {
+int procurarNaLista (int **lista, int quantidadeElementos, const int navio, const int berco) {
+  for (int i = 0; i < quantidadeElementos; i++) {
+    if (lista[0][i] == berco && lista[1][i] == navio) {
       return i;
     }
   }
@@ -183,24 +182,24 @@ int procurarNaLista (ListaTabu &lista, const int navio, const int berco) {
   return -1;
 }
 
-void removerDaLista (ListaTabu &lista, const int posicao) {
-  for (int i = posicao; i < lista.tamanho; i++) {
-    lista.bercos[i] = lista.bercos[i + 1];
-    lista.navios[i] = lista.navios[i + 1];
+void removerDaLista (int **lista, int &quantidadeElementos, const int posicao) {
+  for (int i = posicao+1; i < quantidadeElementos; i++) {
+    lista[0][i-1] = lista[0][i];
+    lista[1][i-1] = lista[1][i];
   }
 
-  lista.quantidadeElementos--;
+  quantidadeElementos--;
 }
 
-void inserirNaLista (ListaTabu &lista, const int navio, const int berco) {
+void inserirNaLista (int **lista, int &quantidadeElementos, int tamanho, const int navio, const int berco) {
   // se a lista estiver cheia remove o primeiro elemento que entrou (FIFO)
-  if (lista.quantidadeElementos == lista.tamanho) {
-    removerDaLista(lista, 0);
+  if (quantidadeElementos == tamanho) {
+    removerDaLista(lista, quantidadeElementos, 0);
   }
 
-  lista.bercos[lista.quantidadeElementos] = berco;
-  lista.navios[lista.quantidadeElementos] = navio;
-  lista.quantidadeElementos++;
+  lista[0][quantidadeElementos] = berco;
+  lista[1][quantidadeElementos] = navio;
+  quantidadeElementos++;
 }
 // ---
 

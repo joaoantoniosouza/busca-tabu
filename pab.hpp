@@ -45,9 +45,9 @@ void clonarSolucao (Solucao &original, Solucao &copia);
 void executarTestes (int repeticoes);
 
 void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaximo, double &tempoTotal, double &momentoMelhorSolucao);
-void removerDaLista (ListaTabu &lista, const int posicao);
-void inserirNaLista (ListaTabu &lista, const int navio, const int berco);
-int procurarNaLista (ListaTabu &lista, const int navio, const int berco);
+void removerDaLista (int **lista, int &quantidadeElementos, const int posicao);
+void inserirNaLista (int **lista, int &quantidadeElementos, int tamanho, const int navio, const int berco);
+int procurarNaLista (int **lista, int quantidadeElementos, const int navio, const int berco);
 double calcularTempo (clock_t &clockInicial, clock_t &clockAtual);
 
 #endif
