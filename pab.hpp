@@ -29,26 +29,26 @@ typedef struct _solucao {
   AtendimentoBerco atendimentoBercos[MAX_BERCOS];
 } Solucao;
 
-typedef struct _listaTabu {
-  int tamanho;
-  int quantidadeElementos;
-  int* bercos;
-  int* navios;
-} ListaTabu;
-
-void lerInstancia (char* instancia);
 void inserirAtendimento (Solucao &solucao, int berco, int navio);
 void removerAtendimento (Solucao &solucao, int navio);
+
 void heuristicaConstrutiva (Solucao &solucao);
+
 void calcularFO (Solucao &solucao);
-void escreverSolucao (Solucao &solucao);
-void clonarSolucao (Solucao &original, Solucao &copia);
-void executarTestes (int repeticoes);
+int calcularFoBerco (Solucao &solucao, int berco);
 
 void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaximo, double &tempoTotal, double &momentoMelhorSolucao);
 void removerDaLista (int **lista, int &quantidadeElementos, const int posicao);
 void inserirNaLista (int **lista, int &quantidadeElementos, int tamanho, const int navio, const int berco);
 int procurarNaLista (int **lista, int quantidadeElementos, const int navio, const int berco);
 double calcularTempo (clock_t &clockInicial, clock_t &clockAtual);
+
+void escreverCabecalhoLog (char *instancia);
+void atualizarExecucaoLog (Solucao &solucao, int it, int seed, double tempoTotal, double tempoMelhor);
+void escreverMediasLog (int numeroExecucoes, int melhorFo, int somaFO, double tempoSoma, double melhorTempoSoma);
+
+void lerInstancia (char* instancia);
+void escreverSolucao (Solucao &solucao);
+void clonarSolucao (Solucao &original, Solucao &copia);
 
 #endif
