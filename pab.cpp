@@ -235,13 +235,18 @@ int calcularFoBerco (Solucao &solucao, int berco) {
   proximoHorarioDisponivelBerco = aberturaFechamento[berco][ABERTURA];
   for (int i = 0; i < solucao.atendimentoBercos[berco].tamanho; i++) {
     navio = solucao.atendimentoBercos[berco].navios[i];
-    momentoAtracamentoNavio = MAX(proximoHorarioDisponivelBerco, momentoChegadaNavio[navio]);
-    proximoHorarioDisponivelBerco = momentoAtracamentoNavio + duracaoAtendimento[berco][navio];
 
-    foBerco += momentoAtracamentoNavio - momentoChegadaNavio[navio] + duracaoAtendimento[berco][navio];
+    if (navio != -1) {
+      momentoAtracamentoNavio = MAX(proximoHorarioDisponivelBerco, momentoChegadaNavio[navio]);
+      proximoHorarioDisponivelBerco = momentoAtracamentoNavio + duracaoAtendimento[berco][navio];
 
-    if (proximoHorarioDisponivelBerco > momentoSaidaNavio[navio]) {
-      foBerco += PENALIDADE_HORARIO_LIMITE_NAVIO;
+      foBerco += momentoAtracamentoNavio - momentoChegadaNavio[navio] + duracaoAtendimento[berco][navio];
+
+      if (proximoHorarioDisponivelBerco > momentoSaidaNavio[navio]) {
+        foBerco += PENALIDADE_HORARIO_LIMITE_NAVIO;
+      }
+    } else {
+      foBerco += PENALIDADE_NAVIO_NAO_ATENDIDO;
     }
   }
 
