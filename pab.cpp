@@ -8,28 +8,62 @@ using namespace std;
 
 #define MAX(X,Y) ((X > Y) ? X : Y)
 
-#define DEBUG
+// #define DEBUG
 
 int main (int argc, char **argv) {
-  Solucao solucao;
+  int tempoMaximo, numeroExecucoes;
+  char* instancia;
+
+  tempoMaximo = 5;
+  numeroExecucoes = 3;
 
   #ifdef DEBUG
-    lerInstancia("./instancias/i03.txt");
+    instancia = "instancias/i01.txt"
+    lerInstancia(instancia);
   #else
-    if (argc != 3) {
+    if (argc < 2) {
       cout << "#ERRO: Informe os parâmetros corretamente" << endl;
-      cout << " $ ./exe caminho_intancia tempo_processamento" << endl;
+      cout << " $ ./exe caminho_instância [tempo_processamento [numero_execuções]]" << endl;
       return 0;
     }
 
-    lerInstancia(argv[1]);
+    instancia = argv[1];
+    tempoMaximo = argc >= 3 ? atoi(argv[2]) : tempoMaximo;
+    numeroExecucoes = argc == 4 ? atoi(argv[3]) : numeroExecucoes;
+
+    lerInstancia(instancia);
   #endif
 
+  Solucao solucao;
   double tempoTotal, momentoMelhorSolucao;
-  buscaTabu(solucao, 100000, 15, tempoTotal, momentoMelhorSolucao);
-  cout << "Tempo total: " << tempoTotal << endl;
-  cout << "Momento melhor solucao: " << momentoMelhorSolucao << endl;
-  escreverSolucao(solucao);
+  int seed, melhorFo, somaFo;
+  double melhorTempoSoma, tempoSoma;
+
+  melhorFo = INT_MAX;
+  melhorTempoSoma = tempoSoma = somaFo = 0;
+
+  escreverCabecalhoLog(instancia);
+  for (int i = 0; i < numeroExecucoes; i++) {
+    cout << "===== Execução " << i + 1 << " =====" << endl << endl;
+    seed = time(NULL);
+    srand(seed);
+
+    buscaTabu(solucao, 1000, tempoMaximo, tempoTotal, momentoMelhorSolucao);
+
+    tempoSoma += tempoTotal;
+    melhorTempoSoma += momentoMelhorSolucao;
+    somaFo += solucao.tempoAtendimentoTotal;
+
+    if (solucao.tempoAtendimentoTotal < melhorFo) {
+      melhorFo = solucao.tempoAtendimentoTotal;
+    }
+
+    atualizarExecucaoLog(solucao, i + 1, seed, tempoTotal, momentoMelhorSolucao);
+
+    cout << "Solução: " << solucao.tempoAtendimentoTotal << endl << endl;
+  }
+
+  escreverMediasLog(numeroExecucoes, melhorFo, somaFo, tempoSoma, melhorTempoSoma);
 
   return 0;
 }
@@ -103,7 +137,6 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
       bercoOriginal = solucaoVizinha.atendimentoNavios[i];
       tempoOriginal = solucaoVizinha.tempoAtendimentoTotal;
 
-      // ! porque k = -1?
       for (int k = 0; k < numeroBercos; k++) {
         if (k != solucaoVizinha.atendimentoNavios[i] && duracaoAtendimento[k][i] != 0) {
           inserirAtendimento(solucaoVizinha, k, i);
