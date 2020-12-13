@@ -67,7 +67,7 @@ void atualizarExecucaoLog (Solucao &solucao, int seed, double tempoTotal, double
 
 // --- busca tabu
 void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaximo, double &tempoTotal, double &momentoMelhorSolucao) {
-  cout << "Executando busca tabu..." << endl;
+  cout << "-> Executando busca tabu" << endl;
 
   clock_t clockInicial, clockAtual;
   Solucao solucaoVizinha;
@@ -78,7 +78,7 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
   calcularFO(solucao);
   clockAtual = clock();
 
-  printf("Solução inicial: %d\n", solucao.tempoAtendimentoTotal);
+  cout << "-> Solução inicial: " << solucao.tempoAtendimentoTotal << endl << endl;
 
   momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
   tempoTotal = momentoMelhorSolucao;
