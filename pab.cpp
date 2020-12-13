@@ -428,4 +428,6 @@ void lerInstancia (char* nomeInstancia) {
        cout << erro << endl;
     }
   }
+
+  fclose(instancia);
 }
