@@ -44,7 +44,7 @@ int procurarNaLista (int **lista, int quantidadeElementos, const int navio, cons
 double calcularTempo (clock_t &clockInicial, clock_t &clockAtual);
 
 void escreverCabecalhoLog (char *instancia);
-void atualizarExecucaoLog (Solucao &solucao, int it, int seed, double tempoTotal, double tempoMelhor);
+void atualizarExecucaoLog (Solucao &solucao, int seed, double tempoTotal, double tempoMelhor);
 void escreverMediasLog (int numeroExecucoes, int melhorFo, int somaFO, double tempoSoma, double melhorTempoSoma);
 
 void lerInstancia (char* instancia);
