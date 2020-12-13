@@ -174,7 +174,7 @@ double calcularTempo (clock_t &clockInicial, clock_t &clockAtual) {
 }
 
 int procurarNaLista (ListaTabu &lista, const int navio, const int berco) {
-  for (int i = 0; i < lista.tamanho; i++) {
+  for (int i = 0; i < lista.quantidadeElementos; i++) {
     if (lista.bercos[i] == berco && lista.navios[i] == navio) {
       return i;
     }
