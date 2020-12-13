@@ -198,28 +198,34 @@ void heuristicaConstrutiva (Solucao &solucao) {
   }
 }
 
+int calcularFoBerco (Solucao &solucao, int berco) {
+  int foBerco, navio, momentoAtracamentoNavio, proximoHorarioDisponivelBerco;
+
+  foBerco = 0;
+  proximoHorarioDisponivelBerco = aberturaFechamento[berco][ABERTURA];
+  for (int i = 0; i < solucao.atendimentoBercos[berco].tamanho; i++) {
+    navio = solucao.atendimentoBercos[berco].navios[i];
+    momentoAtracamentoNavio = MAX(proximoHorarioDisponivelBerco, momentoChegadaNavio[navio]);
+    proximoHorarioDisponivelBerco = momentoAtracamentoNavio + duracaoAtendimento[berco][navio];
+
+    foBerco += momentoAtracamentoNavio - momentoChegadaNavio[navio] + duracaoAtendimento[berco][navio];
+
+    if (proximoHorarioDisponivelBerco > momentoSaidaNavio[navio]) {
+      foBerco += PENALIDADE_HORARIO_LIMITE_NAVIO;
+    }
+  }
+
+  if (proximoHorarioDisponivelBerco > aberturaFechamento[berco][FECHAMENTO]) {
+    foBerco += PENALIDADE_HORARIO_LIMITE_BERCO;
+  }
+
+  return foBerco;
+}
+
 void calcularFO(Solucao &solucao) {
-  int navio, proximoHorarioDisponivelBerco, momentoAtracamentoNavio;
   solucao.tempoAtendimentoTotal = 0;
-
   for (int k = 0; k < numeroBercos; k++) {
-    proximoHorarioDisponivelBerco = aberturaFechamento[k][ABERTURA];
-
-    for (int i = 0; i < solucao.atendimentoBercos[k].tamanho; i++) {
-      navio = solucao.atendimentoBercos[k].navios[i];
-      momentoAtracamentoNavio = MAX(proximoHorarioDisponivelBerco, momentoChegadaNavio[navio]);
-      proximoHorarioDisponivelBerco = momentoAtracamentoNavio + duracaoAtendimento[k][navio];
-
-      solucao.tempoAtendimentoTotal += momentoAtracamentoNavio - momentoChegadaNavio[navio] + duracaoAtendimento[k][navio];
-
-      if (proximoHorarioDisponivelBerco > momentoSaidaNavio[navio]) {
-        solucao.tempoAtendimentoTotal += PENALIDADE_HORARIO_LIMITE_NAVIO;
-      }
-    }
-
-    if (proximoHorarioDisponivelBerco > aberturaFechamento[k][FECHAMENTO]) {
-      solucao.tempoAtendimentoTotal += PENALIDADE_HORARIO_LIMITE_BERCO;
-    }
+    solucao.tempoAtendimentoTotal += calcularFoBerco(solucao, k);
   }
 }
 
