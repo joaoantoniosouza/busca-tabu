@@ -55,13 +55,13 @@ void escreverMediasLog (int numeroExecucoes, int melhorFo, int somaFo, double te
 void escreverCabecalhoLog (char *instancia) {
   FILE* logFile = fopen("log", "a");
   fprintf(logFile, "INSTÂNCIA: %s\n\n", instancia);
-  fprintf(logFile, "FO\t\tTEMPO TOTAL\t\tTEMPO MELHOR\tSEED\n");
+  fprintf(logFile, "N⁰\tFO\t\tTEMPO TOTAL\t\tTEMPO MELHOR\tSEED\n");
   fclose(logFile);
 }
 
-void atualizarExecucaoLog (Solucao &solucao, int seed, double tempoTotal, double tempoMelhor) {
+void atualizarExecucaoLog (Solucao &solucao, int it, int seed, double tempoTotal, double tempoMelhor) {
   FILE* logFile = fopen("log", "a");
-  fprintf(logFile, "%d\t%f\t\t\t%f\t\t\t%d\n", solucao.tempoAtendimentoTotal, tempoTotal, tempoMelhor, seed);
+  fprintf(logFile, "%d\t\t%d\t%f\t\t\t%f\t\t\t%d\n", it, solucao.tempoAtendimentoTotal, tempoTotal, tempoMelhor, seed);
   fclose(logFile);
 }
 
