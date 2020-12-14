@@ -15,7 +15,7 @@ int main (int argc, char **argv) {
   double tempoMaximo;
   char* instancia;
 
-  tempoMaximo = 5;
+  tempoMaximo = 1;
   numeroExecucoes = 3;
 
   #ifdef DEBUG
