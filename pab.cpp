@@ -200,6 +200,11 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
       clonarSolucao(solucaoVizinha, solucao);
       clockAtual = clock();
       momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
+
+      #ifdef DEBUG
+        cout << "Melhorou: " << solucao.tempoAtendimentoTotal << endl;
+      #endif
+
     }
 
     // ----
