@@ -11,14 +11,15 @@ using namespace std;
 // #define DEBUG
 
 int main (int argc, char **argv) {
-  int tempoMaximo, numeroExecucoes;
+  int numeroExecucoes;
+  double tempoMaximo;
   char* instancia;
 
   tempoMaximo = 5;
   numeroExecucoes = 3;
 
   #ifdef DEBUG
-    instancia = "instancias/i01.txt"
+    instancia = "instancias/i01.txt";
     lerInstancia(instancia);
   #else
     if (argc < 2) {
@@ -28,7 +29,7 @@ int main (int argc, char **argv) {
     }
 
     instancia = argv[1];
-    tempoMaximo = argc >= 3 ? atoi(argv[2]) : tempoMaximo;
+    tempoMaximo = argc >= 3 ? atof(argv[2]) : tempoMaximo;
     numeroExecucoes = argc == 4 ? atoi(argv[3]) : numeroExecucoes;
 
     lerInstancia(instancia);
@@ -36,7 +37,7 @@ int main (int argc, char **argv) {
 
   Solucao solucao;
   double tempoTotal, momentoMelhorSolucao;
-  int seed, melhorFo, somaFo;
+  int solucaoInicial, seed, melhorFo, somaFo;
   double melhorTempoSoma, tempoSoma;
 
   melhorFo = INT_MAX;
@@ -45,10 +46,11 @@ int main (int argc, char **argv) {
   escreverCabecalhoLog(instancia);
   for (int i = 0; i < numeroExecucoes; i++) {
     cout << "===== Execução " << i + 1 << " =====" << endl << endl;
+
     seed = time(NULL);
     srand(seed);
 
-    buscaTabu(solucao, 1000, tempoMaximo, tempoTotal, momentoMelhorSolucao);
+    buscaTabu(solucao, 1000, tempoMaximo, tempoTotal, momentoMelhorSolucao, solucaoInicial);
 
     tempoSoma += tempoTotal;
     melhorTempoSoma += momentoMelhorSolucao;
@@ -58,7 +60,7 @@ int main (int argc, char **argv) {
       melhorFo = solucao.tempoAtendimentoTotal;
     }
 
-    atualizarExecucaoLog(solucao, i + 1, seed, tempoTotal, momentoMelhorSolucao);
+    atualizarExecucaoLog(solucao, seed, tempoTotal, momentoMelhorSolucao, solucaoInicial);
 
     cout << "Solução: " << solucao.tempoAtendimentoTotal << endl << endl;
   }
