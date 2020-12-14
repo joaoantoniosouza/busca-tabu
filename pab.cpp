@@ -1,7 +1,8 @@
 #include <iostream>
 #include <string>
-#include <memory.h>
 #include <climits>
+#include <memory.h>
+#include <math.h>
 #include "pab.hpp"
 
 using namespace std;
@@ -31,7 +32,7 @@ int main (int argc, char **argv) {
 
     instancia = argv[1];
     tempoMaximo = argc >= 3 ? atof(argv[2]) : tempoMaximo;
-    numeroExecucoes = argc == 4 ? atoi(argv[3]) : numeroExecucoes;
+    numeroExecucoes = argc >= 4 ? atoi(argv[3]) : numeroExecucoes;
 
     lerInstancia(instancia);
   #endif
@@ -40,6 +41,19 @@ int main (int argc, char **argv) {
   double tempoTotal, momentoMelhorSolucao;
   int solucaoInicial, seed, melhorFo, somaFo;
   double melhorTempoSoma, tempoSoma;
+
+  // for (int k = 0; k < numeroBercos; k++) {
+  //   solucao.atendimentoBercos[k].tamanho = 0;
+  // }
+
+  // memset(&solucao.atendimentoNavios, -1, sizeof(solucao.atendimentoNavios));
+
+  // inserirAtendimento(solucao, 1, 4);
+  // inserirAtendimento(solucao, 1, 2);
+  // inserirAtendimento(solucao, 1, 3);
+  // inserirAtendimento(solucao, 1, 9);
+
+  // cout << calcularFoBerco(solucao, 1) << endl;
 
   melhorFo = INT_MAX;
   melhorTempoSoma = tempoSoma = somaFo = 0;
@@ -336,37 +350,30 @@ void removerAtendimento (Solucao &solucao, int navioARemover) {
 }
 
 void inserirAtendimento (Solucao &solucao, int berco, int navio) {
-  int navioAtendido;
   removerAtendimento(solucao, navio);
 
   solucao.atendimentoNavios[navio] = berco;
   solucao.atendimentoBercos[berco].navios[solucao.atendimentoBercos[berco].tamanho] = navio;
-
-  /**
-   * Exemplo explicativo
-   * berco x - 1 4 8 6 9 10 7
-   */
-  for (int i = solucao.atendimentoBercos[berco].tamanho; i > 0; i--) {
-    navioAtendido = solucao.atendimentoBercos[berco].navios[i - 1];
-
-    if (momentoChegadaNavio[navio] < momentoChegadaNavio[navioAtendido]) {
-      solucao.atendimentoBercos[berco].navios[i] = navioAtendido;
-      solucao.atendimentoBercos[berco].navios[i - 1] = navio;
-    } else {
-      if (momentoChegadaNavio[navio] == momentoChegadaNavio[navioAtendido]) {
-        if (duracaoAtendimento[berco][navio] < duracaoAtendimento[berco][navioAtendido]) {
-          solucao.atendimentoBercos[berco].navios[i] = navioAtendido;
-          solucao.atendimentoBercos[berco].navios[i - 1] = navio;
-        } else {
-          solucao.atendimentoBercos[berco].navios[i] = navio;
-          solucao.atendimentoBercos[berco].navios[i - 1] = navioAtendido;
-        }
-      }
-      break;
-    }
-  }
-
   solucao.atendimentoBercos[berco].tamanho++;
+
+  int j;
+  int aux;
+  for (int i = 1; i < solucao.atendimentoBercos[berco].tamanho; i++) {
+    aux = solucao.atendimentoBercos[berco].navios[i];
+    j = i - 1;
+
+    // Explicativo
+    // NAVIO_ATUAL = solucao.atendimentoBercos[berco].navios[j];
+    // menor = momentoChegadaNavio[aux] < momentoChegadaNavio[NAVIO_ATUAL];
+    // igualEDuracaoAtendimentoMenor = momentoChegadaNavio[aux] == momentoChegadaNavio[NAVIO_ATUAL] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][NAVIO_ATUAL];
+
+    while ((j >= 0) && (momentoChegadaNavio[aux] < momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] || (momentoChegadaNavio[aux] == momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][solucao.atendimentoBercos[berco].navios[j]]))) {
+      solucao.atendimentoBercos[berco].navios[j+1] = solucao.atendimentoBercos[berco].navios[j];
+      j--;
+    }
+
+    if (j != (i-1)) solucao.atendimentoBercos[berco].navios[j+1] = aux;
+  }
 }
 
 void clonarSolucao (Solucao &original, Solucao &copia) {

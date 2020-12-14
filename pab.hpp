@@ -31,6 +31,8 @@ typedef struct _solucao {
 
 void inserirAtendimento (Solucao &solucao, int berco, int navio);
 void removerAtendimento (Solucao &solucao, int navio);
+void inserirAtendimentoMelhorFo (Solucao &solucao, int berco, int navio);
+void inserirAtendimentoPrimeiroChegar (Solucao &solucao, int berco, int navio);
 
 void heuristicaConstrutiva (Solucao &solucao);
 
