@@ -48,7 +48,13 @@ int main (int argc, char **argv) {
   for (int i = 0; i < numeroExecucoes; i++) {
     cout << "===== Execução " << i + 1 << " =====" << endl << endl;
 
-    seed = clock();
+    if (argc == 5) {
+      seed = atoi(argv[4]);
+    } else {
+      srand(clock());
+      seed = clock() / (1000+rand() % 10000) + time(NULL) / (1000+rand() % 10000);
+    }
+
     srand(seed);
 
     buscaTabu(solucao, 1000, tempoMaximo, tempoTotal, momentoMelhorSolucao, solucaoInicial);
