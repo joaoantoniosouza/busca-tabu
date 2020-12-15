@@ -22,7 +22,7 @@ int main (int argc, char **argv) {
     if (argc == 1) {
       cout << " =====================================================" << endl;
       cout << "Comando para execução parametrizada: " << endl;
-      cout << "   $ ./exe caminho_instância [tempo_processamento [numero_execuções]]" << endl;
+      cout << "   $ ./exe instancia tempo_processamento numero_exec maximo_troca potencia_troca pertubacao seed" << endl;
       cout << endl << "Todos os parâmetros são opcionais." << endl;
       cout << "Default" << endl;
       cout << "   Instância: i01.txt." << endl;
@@ -52,7 +52,8 @@ int main (int argc, char **argv) {
 
       maximoTrocas = argc >= 5 ? atoi(argv[4]) : maximoTrocas;
       potenciaDeTroca = argc >= 6 ? atoi(argv[5]) : potenciaDeTroca;
-      seed = argc == 7 ? atoi(argv[6]) : clock();
+      pertubacao = argc >= 7 ? atoi(argv[6]) : pertubacao;
+      seed = argc == 8 ? atoi(argv[7]) : clock();
 
       srand(seed);
       buscaTabu(solucao, 1000, tempoMaximo, tempoTotal, momentoMelhorSolucao, solucaoInicial);
@@ -99,7 +100,10 @@ void escreverMediasLog (int numeroExecucoes, int melhorFo, int somaFo, double te
 
 void escreverCabecalhoLog (char *instancia) {
   FILE* logFile = fopen("log", "a");
-  fprintf(logFile, "INSTÂNCIA: %s\n\n", instancia);
+  fprintf(logFile, "INSTÂNCIA: %s\n", instancia);
+  fprintf(logFile, "MÁXIMO TROCAS: %d\n", maximoTrocas);
+  fprintf(logFile, "POTÊNCIA DE TROCA: %d\n\n", potenciaDeTroca);
+  fprintf(logFile, "IT PERTUBACAO: %d\n\n", pertubacao);
   fprintf(logFile, "SOLUÇÃO INICIAL\t\tFO\t\t\tTEMPO TOTAL\t\tTEMPO MELHOR\t\tSEED\n");
   fclose(logFile);
 }
@@ -140,6 +144,7 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
   int bercoOriginal, tempoOriginal;
   int melhorTempo, melhorNavio, melhorBerco, melhorPosicao;
   int flag, posicaoNaLista;
+  int it = 0;
 
   while(tempoTotal < tempoMaximo) {
     melhorTempo = INT_MAX;
@@ -202,6 +207,20 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
       clonarSolucao(solucaoVizinha, solucao);
       clockAtual = clock();
       momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
+    } else {
+      it++;
+
+      int navioTroca, bercoTroca;
+      if (pertubacao != -1 && it == pertubacao) {
+        for (int i = 0; i < 1 + rand() % 100; i++) {
+          navioTroca = rand() % numeroNavios;
+          bercoTroca = rand() % numeroBercos;
+          removerAtendimento(solucao, navioTroca);
+          solucao.atendimentoBercos[bercoTroca].navios[solucao.atendimentoBercos[bercoTroca].tamanho] = navioTroca;
+          solucao.atendimentoBercos[bercoTroca].tamanho++;
+        }
+        it = 0;
+      }
     }
 
     // ----
@@ -346,29 +365,19 @@ void inserirAtendimento (Solucao &solucao, int berco, int navio) {
   fazerTrocasAleatorias(solucao, berco);
 }
 
-// shell sort
 void ordenarBerco (Solucao &solucao, int berco) {
-  int h, i, j, aux;
+  int j;
+  int aux;
+  for (int i = 1; i < solucao.atendimentoBercos[berco].tamanho; i++) {
+    aux = solucao.atendimentoBercos[berco].navios[i];
+    j = i - 1;
 
-  h = 1;
-  while(h < solucao.atendimentoBercos[berco].tamanho) {
-    h = (3 * h) + 1;
-  }
-
-  while(h > 1) {
-    h = h / 3;
-
-    for(i = h; i < solucao.atendimentoBercos[berco].tamanho; i++) {
-      aux = solucao.atendimentoBercos[berco].navios[i];
-      j = i - h;
-
-      while(j >= 0 && momentoChegadaNavio[aux] < momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]]) {
-        solucao.atendimentoBercos[berco].navios[j + h] = solucao.atendimentoBercos[berco].navios[j];
-        j -= h;
-      }
-
-      solucao.atendimentoBercos[berco].navios[j + h] = aux;
+    while ((j >= 0) && (momentoChegadaNavio[aux] < momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] || (momentoChegadaNavio[aux] == momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][solucao.atendimentoBercos[berco].navios[j]]))) {
+      solucao.atendimentoBercos[berco].navios[j+1] = solucao.atendimentoBercos[berco].navios[j];
+      j--;
     }
+
+    if (j != (i-1)) solucao.atendimentoBercos[berco].navios[j+1] = aux;
   }
 }
 
