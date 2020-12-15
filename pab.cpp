@@ -29,10 +29,10 @@ int main (int argc, char **argv) {
 
     instancia = argc > 1 ? argv[1] : (char*) "instancias/i01.txt";
     tamanhoListaTabu = argc >= 3 ? atoi(argv[2]) : tamanhoListaTabu;
-    tempoExecucaoMaximo = argc >= 3 ? atof(argv[3]) : tempoExecucaoMaximo;
-    numeroExecucoes = argc >= 4 ? atoi(argv[4]) : numeroExecucoes;
-    maximoTrocas = argc >= 5 ? atoi(argv[5]) : maximoTrocas;
-    potenciaDeTroca = argc >= 6 ? atoi(argv[6]) : potenciaDeTroca;
+    tempoExecucaoMaximo = argc >= 4 ? atof(argv[3]) : tempoExecucaoMaximo;
+    numeroExecucoes = argc >= 5 ? atoi(argv[4]) : numeroExecucoes;
+    maximoTrocas = argc >= 6 ? atoi(argv[5]) : maximoTrocas;
+    potenciaDeTroca = argc >= 7 ? atoi(argv[6]) : potenciaDeTroca;
 
     cout << "Executando..." << endl << endl;
     cout << "Instância: " << instancia << endl;
