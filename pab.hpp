@@ -1,6 +1,14 @@
 #ifndef PAB_HPP
 #define PAB_HPP
 
+#define MAXIMO_TROCAS_ALEATORIAS 1000
+#define POTENCIA_DE_TROCAS 3
+#define TAMANHO_LISTA_TABU 10000
+
+int maximoTrocas = MAXIMO_TROCAS_ALEATORIAS;
+int potenciaDeTroca = POTENCIA_DE_TROCAS;
+int tamanhoListaTabu = TAMANHO_LISTA_TABU;
+
 #define MAX_NAVIOS 110
 #define MAX_BERCOS 25
 
@@ -35,6 +43,9 @@ void removerAtendimento (Solucao &solucao, int navioARemover);
 
 void removerAtendimentoOrdemChegada (Solucao &solucao, int navioARemover);
 void inserirAtendimentoOrdemChegada (Solucao &solucao, int berco, int navio);
+
+void ordenarBerco (Solucao &solucao, int berco);
+void fazerTrocasAleatorias (Solucao &solucao, int berco);
 
 void heuristicaConstrutiva (Solucao &solucao);
 

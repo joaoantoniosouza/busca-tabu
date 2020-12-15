@@ -50,15 +50,11 @@ int main (int argc, char **argv) {
     for (int i = 0; i < numeroExecucoes; i++) {
       cout << "===== Execução " << i + 1 << " =====" << endl << endl;
 
-      if (argc == 5) {
-        seed = atoi(argv[4]);
-      } else {
-        srand(clock());
-        seed = clock() / (1000+rand() % 10000) + time(NULL) / (1000+rand() % 10000);
-      }
+      maximoTrocas = argc >= 5 ? atoi(argv[4]) : maximoTrocas;
+      potenciaDeTroca = argc >= 6 ? atoi(argv[5]) : potenciaDeTroca;
+      seed = argc == 7 ? atoi(argv[6]) : clock();
 
       srand(seed);
-
       buscaTabu(solucao, 1000, tempoMaximo, tempoTotal, momentoMelhorSolucao, solucaoInicial);
 
       tempoSoma += tempoTotal;
@@ -334,49 +330,8 @@ void removerAtendimento (Solucao &solucao, int navioARemover) {
     solucao.atendimentoBercos[berco].tamanho--;
     solucao.atendimentoNavios[navioARemover] = -1;
 
-    int j;
-    for (i = 1; i < solucao.atendimentoBercos[berco].tamanho; i++) {
-      aux = solucao.atendimentoBercos[berco].navios[i];
-      j = i - 1;
-
-      // Explicativo
-      // NAVIO_ATUAL = solucao.atendimentoBercos[berco].navios[j];
-      // menor = momentoChegadaNavio[aux] < momentoChegadaNavio[NAVIO_ATUAL];
-      // igualEDuracaoAtendimentoMenor = momentoChegadaNavio[aux] == momentoChegadaNavio[NAVIO_ATUAL] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][NAVIO_ATUAL];
-
-      while ((j >= 0) && (momentoChegadaNavio[aux] < momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] || (momentoChegadaNavio[aux] == momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][solucao.atendimentoBercos[berco].navios[j]]))) {
-        solucao.atendimentoBercos[berco].navios[j+1] = solucao.atendimentoBercos[berco].navios[j];
-        j--;
-      }
-
-      if (j != (i-1)) solucao.atendimentoBercos[berco].navios[j+1] = aux;
-    }
-
-    int fo, melhorFo, posicao1, posicao2, navioTroca;
-
-    if (solucao.atendimentoBercos[berco].tamanho > 1) {
-      melhorFo = calcularFoBerco(solucao, berco);
-
-      srand(seed+berco);
-
-      for (i = 0; i < MIN(100000, pow(solucao.atendimentoBercos[berco].tamanho, 3)); i++) {
-        posicao1 = rand() % solucao.atendimentoBercos[berco].tamanho;
-        posicao2 = rand() % solucao.atendimentoBercos[berco].tamanho;
-
-        navioTroca = solucao.atendimentoBercos[berco].navios[posicao1];
-        solucao.atendimentoBercos[berco].navios[posicao1] = solucao.atendimentoBercos[berco].navios[posicao2];
-        solucao.atendimentoBercos[berco].navios[posicao2] = navioTroca;
-
-        fo = calcularFoBerco(solucao, berco);
-
-        if (fo < melhorFo) {
-          melhorFo = fo;
-        } else {
-          solucao.atendimentoBercos[berco].navios[posicao2] = solucao.atendimentoBercos[berco].navios[posicao1];
-          solucao.atendimentoBercos[berco].navios[posicao1] = navioTroca;
-        }
-      }
-    }
+    ordenarBerco(solucao, berco);
+    fazerTrocasAleatorias(solucao, berco);
   }
 }
 
@@ -387,25 +342,37 @@ void inserirAtendimento (Solucao &solucao, int berco, int navio) {
   solucao.atendimentoBercos[berco].navios[solucao.atendimentoBercos[berco].tamanho] = navio;
   solucao.atendimentoBercos[berco].tamanho++;
 
-  int j;
-  int aux;
-  for (int i = 1; i < solucao.atendimentoBercos[berco].tamanho; i++) {
-    aux = solucao.atendimentoBercos[berco].navios[i];
-    j = i - 1;
+  ordenarBerco(solucao, berco);
+  fazerTrocasAleatorias(solucao, berco);
+}
 
-    // Explicativo
-    // NAVIO_ATUAL = solucao.atendimentoBercos[berco].navios[j];
-    // menor = momentoChegadaNavio[aux] < momentoChegadaNavio[NAVIO_ATUAL];
-    // igualEDuracaoAtendimentoMenor = momentoChegadaNavio[aux] == momentoChegadaNavio[NAVIO_ATUAL] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][NAVIO_ATUAL];
+// shell sort
+void ordenarBerco (Solucao &solucao, int berco) {
+  int h, i, j, aux;
 
-    while ((j >= 0) && (momentoChegadaNavio[aux] < momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] || (momentoChegadaNavio[aux] == momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][solucao.atendimentoBercos[berco].navios[j]]))) {
-      solucao.atendimentoBercos[berco].navios[j+1] = solucao.atendimentoBercos[berco].navios[j];
-      j--;
-    }
-
-    if (j != (i-1)) solucao.atendimentoBercos[berco].navios[j+1] = aux;
+  h = 1;
+  while(h < solucao.atendimentoBercos[berco].tamanho) {
+    h = (3 * h) + 1;
   }
 
+  while(h > 1) {
+    h = h / 3;
+
+    for(i = h; i < solucao.atendimentoBercos[berco].tamanho; i++) {
+      aux = solucao.atendimentoBercos[berco].navios[i];
+      j = i - h;
+
+      while(j >= 0 && momentoChegadaNavio[aux] < momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]]) {
+        solucao.atendimentoBercos[berco].navios[j + h] = solucao.atendimentoBercos[berco].navios[j];
+        j -= h;
+      }
+
+      solucao.atendimentoBercos[berco].navios[j + h] = aux;
+    }
+  }
+}
+
+void fazerTrocasAleatorias (Solucao &solucao, int berco) {
   int fo, melhorFo, posicao1, posicao2, navioTroca;
 
   if (solucao.atendimentoBercos[berco].tamanho > 1) {
@@ -413,7 +380,7 @@ void inserirAtendimento (Solucao &solucao, int berco, int navio) {
 
     melhorFo = calcularFoBerco(solucao, berco);
 
-    for (int i = 0; i < MIN(100000, pow(solucao.atendimentoBercos[berco].tamanho, 3)); i++) {
+    for (int i = 0; i < MIN(maximoTrocas, pow(solucao.atendimentoBercos[berco].tamanho, potenciaDeTroca)); i++) {
       posicao1 = rand() % solucao.atendimentoBercos[berco].tamanho;
       posicao2 = rand() % solucao.atendimentoBercos[berco].tamanho;
 
