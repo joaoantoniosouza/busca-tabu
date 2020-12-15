@@ -111,7 +111,7 @@ void escreverCabecalhoLog (char *instancia) {
   fprintf(logFile, "INSTÂNCIA: %s\n", instancia);
   fprintf(logFile, "TAMANHO LISTA: %d\n", tamanhoListaTabu);
   fprintf(logFile, "MÁXIMO TROCAS: %d\n", maximoTrocas);
-  fprintf(logFile, "POTÊNCIA DE TROCA: %d\n", potenciaDeTroca);
+  fprintf(logFile, "POTÊNCIA DE TROCA: %d\n\n", potenciaDeTroca);
   fprintf(logFile, "SOLUÇÃO INICIAL\t\tFO\t\t\tTEMPO TOTAL\t\tTEMPO MELHOR\t\tSEED\n");
   fclose(logFile);
 }
