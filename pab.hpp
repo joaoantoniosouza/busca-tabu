@@ -8,6 +8,7 @@
 #define PENALIDADE_HORARIO_LIMITE_NAVIO 2000
 #define PENALIDADE_NAVIO_NAO_ATENDIDO 2000
 
+int seed;
 int numeroNavios, numeroBercos;
 
 int duracaoAtendimento[MAX_BERCOS][MAX_NAVIOS];
@@ -30,9 +31,10 @@ typedef struct _solucao {
 } Solucao;
 
 void inserirAtendimento (Solucao &solucao, int berco, int navio);
-void removerAtendimento (Solucao &solucao, int navio);
-void inserirAtendimentoMelhorFo (Solucao &solucao, int berco, int navio);
-void inserirAtendimentoPrimeiroChegar (Solucao &solucao, int berco, int navio);
+void removerAtendimento (Solucao &solucao, int navioARemover);
+
+void removerAtendimentoOrdemChegada (Solucao &solucao, int navioARemover);
+void inserirAtendimentoOrdemChegada (Solucao &solucao, int berco, int navio);
 
 void heuristicaConstrutiva (Solucao &solucao);
 
@@ -52,5 +54,7 @@ void escreverMediasLog (int numeroExecucoes, int melhorFo, int somaFO, double te
 void lerInstancia (char* instancia);
 void escreverSolucao (Solucao &solucao);
 void clonarSolucao (Solucao &original, Solucao &copia);
+
+void testeEstrategiasInsercao ();
 
 #endif

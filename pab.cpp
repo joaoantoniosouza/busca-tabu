@@ -10,83 +10,75 @@ using namespace std;
 #define MAX(X,Y) ((X > Y) ? X : Y)
 #define MIN(X, Y) ((X < Y) ? X : Y)
 
-// #define DEBUG
-
 int main (int argc, char **argv) {
-  int numeroExecucoes;
-  double tempoMaximo;
-  char* instancia;
+  #ifndef TEST
+    int numeroExecucoes;
+    double tempoMaximo;
+    char* instancia;
 
-  tempoMaximo = 1;
-  numeroExecucoes = 3;
+    tempoMaximo = 2;
+    numeroExecucoes = 3;
 
-  #ifdef DEBUG
-    instancia = "instancias/i01.txt";
-    lerInstancia(instancia);
-  #else
-    if (argc < 2) {
-      cout << "#ERRO: Informe os parâmetros corretamente" << endl;
-      cout << " $ ./exe caminho_instância [tempo_processamento [numero_execuções]]" << endl;
-      return 0;
+    if (argc == 1) {
+      cout << " =====================================================" << endl;
+      cout << "Comando para execução parametrizada: " << endl;
+      cout << "   $ ./exe caminho_instância [tempo_processamento [numero_execuções]]" << endl;
+      cout << endl << "Todos os parâmetros são opcionais." << endl;
+      cout << "Default" << endl;
+      cout << "   Instância: i01.txt." << endl;
+      cout << "   Numero de execuções:" << numeroExecucoes << "." << endl;
+      cout << "   Tempo máximo:" << tempoMaximo << " seg." << endl;
+      cout << "   Seed aleatória." << endl;
+      cout << " =====================================================" << endl << endl;
     }
 
-    instancia = argv[1];
+    instancia = argc > 1 ? argv[1] : (char*) "instancias/i01.txt";
     tempoMaximo = argc >= 3 ? atof(argv[2]) : tempoMaximo;
     numeroExecucoes = argc >= 4 ? atoi(argv[3]) : numeroExecucoes;
 
     lerInstancia(instancia);
+
+    Solucao solucao;
+    double tempoTotal, momentoMelhorSolucao;
+    int solucaoInicial, melhorFo, somaFo;
+    double melhorTempoSoma, tempoSoma;
+
+    melhorFo = INT_MAX;
+    melhorTempoSoma = tempoSoma = somaFo = 0;
+
+    escreverCabecalhoLog(instancia);
+    for (int i = 0; i < numeroExecucoes; i++) {
+      cout << "===== Execução " << i + 1 << " =====" << endl << endl;
+
+      if (argc == 5) {
+        seed = atoi(argv[4]);
+      } else {
+        srand(clock());
+        seed = clock() / (1000+rand() % 10000) + time(NULL) / (1000+rand() % 10000);
+      }
+
+      srand(seed);
+
+      buscaTabu(solucao, 1000, tempoMaximo, tempoTotal, momentoMelhorSolucao, solucaoInicial);
+
+      tempoSoma += tempoTotal;
+      melhorTempoSoma += momentoMelhorSolucao;
+      somaFo += solucao.tempoAtendimentoTotal;
+
+      if (solucao.tempoAtendimentoTotal < melhorFo) {
+        melhorFo = solucao.tempoAtendimentoTotal;
+      }
+
+      atualizarExecucaoLog(solucao, seed, tempoTotal, momentoMelhorSolucao, solucaoInicial);
+
+      cout << "Solução: " << solucao.tempoAtendimentoTotal << endl << endl;
+    }
+
+    escreverMediasLog(numeroExecucoes, melhorFo, somaFo, tempoSoma, melhorTempoSoma);
+  #else
+    lerInstancia("instancias/i01.txt");
+    testeEstrategiasInsercao();
   #endif
-
-  Solucao solucao;
-  double tempoTotal, momentoMelhorSolucao;
-  int solucaoInicial, seed, melhorFo, somaFo;
-  double melhorTempoSoma, tempoSoma;
-
-  // for (int k = 0; k < numeroBercos; k++) {
-  //   solucao.atendimentoBercos[k].tamanho = 0;
-  // }
-
-  // memset(&solucao.atendimentoNavios, -1, sizeof(solucao.atendimentoNavios));
-
-  // inserirAtendimento(solucao, 1, 4);
-  // inserirAtendimento(solucao, 1, 2);
-  // inserirAtendimento(solucao, 1, 3);
-  // inserirAtendimento(solucao, 1, 9);
-
-  // cout << calcularFoBerco(solucao, 1) << endl;
-
-  melhorFo = INT_MAX;
-  melhorTempoSoma = tempoSoma = somaFo = 0;
-
-  escreverCabecalhoLog(instancia);
-  for (int i = 0; i < numeroExecucoes; i++) {
-    cout << "===== Execução " << i + 1 << " =====" << endl << endl;
-
-    if (argc == 5) {
-      seed = atoi(argv[4]);
-    } else {
-      srand(clock());
-      seed = clock() / (1000+rand() % 10000) + time(NULL) / (1000+rand() % 10000);
-    }
-
-    srand(seed);
-
-    buscaTabu(solucao, 1000, tempoMaximo, tempoTotal, momentoMelhorSolucao, solucaoInicial);
-
-    tempoSoma += tempoTotal;
-    melhorTempoSoma += momentoMelhorSolucao;
-    somaFo += solucao.tempoAtendimentoTotal;
-
-    if (solucao.tempoAtendimentoTotal < melhorFo) {
-      melhorFo = solucao.tempoAtendimentoTotal;
-    }
-
-    atualizarExecucaoLog(solucao, seed, tempoTotal, momentoMelhorSolucao, solucaoInicial);
-
-    cout << "Solução: " << solucao.tempoAtendimentoTotal << endl << endl;
-  }
-
-  escreverMediasLog(numeroExecucoes, melhorFo, somaFo, tempoSoma, melhorTempoSoma);
 
   return 0;
 }
@@ -116,9 +108,9 @@ void escreverCabecalhoLog (char *instancia) {
   fclose(logFile);
 }
 
-void atualizarExecucaoLog (Solucao &solucao, int seed, double tempoTotal, double tempoMelhor, int solucaoInicial) {
+void atualizarExecucaoLog (Solucao &solucao, int seedUtilizada, double tempoTotal, double tempoMelhor, int solucaoInicial) {
   FILE* logFile = fopen("log", "a");
-  fprintf(logFile, "%d\t\t\t\t\t\t\t%d\t\t%f\t\t\t%f\t\t\t\t%d\n", solucaoInicial, solucao.tempoAtendimentoTotal, tempoTotal, tempoMelhor, seed);
+  fprintf(logFile, "%d\t\t\t\t\t\t\t%d\t\t%f\t\t\t%f\t\t\t\t%d\n", solucaoInicial, solucao.tempoAtendimentoTotal, tempoTotal, tempoMelhor, seedUtilizada);
   fclose(logFile);
 }
 
@@ -214,11 +206,6 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
       clonarSolucao(solucaoVizinha, solucao);
       clockAtual = clock();
       momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
-
-      #ifdef DEBUG
-        cout << "Melhorou: " << solucao.tempoAtendimentoTotal << endl;
-      #endif
-
     }
 
     // ----
@@ -346,6 +333,50 @@ void removerAtendimento (Solucao &solucao, int navioARemover) {
 
     solucao.atendimentoBercos[berco].tamanho--;
     solucao.atendimentoNavios[navioARemover] = -1;
+
+    int j;
+    for (i = 1; i < solucao.atendimentoBercos[berco].tamanho; i++) {
+      aux = solucao.atendimentoBercos[berco].navios[i];
+      j = i - 1;
+
+      // Explicativo
+      // NAVIO_ATUAL = solucao.atendimentoBercos[berco].navios[j];
+      // menor = momentoChegadaNavio[aux] < momentoChegadaNavio[NAVIO_ATUAL];
+      // igualEDuracaoAtendimentoMenor = momentoChegadaNavio[aux] == momentoChegadaNavio[NAVIO_ATUAL] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][NAVIO_ATUAL];
+
+      while ((j >= 0) && (momentoChegadaNavio[aux] < momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] || (momentoChegadaNavio[aux] == momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][solucao.atendimentoBercos[berco].navios[j]]))) {
+        solucao.atendimentoBercos[berco].navios[j+1] = solucao.atendimentoBercos[berco].navios[j];
+        j--;
+      }
+
+      if (j != (i-1)) solucao.atendimentoBercos[berco].navios[j+1] = aux;
+    }
+
+    int fo, melhorFo, posicao1, posicao2, navioTroca;
+
+    if (solucao.atendimentoBercos[berco].tamanho > 1) {
+      melhorFo = calcularFoBerco(solucao, berco);
+
+      srand(seed+berco);
+
+      for (i = 0; i < MIN(100000, pow(solucao.atendimentoBercos[berco].tamanho, 3)); i++) {
+        posicao1 = rand() % solucao.atendimentoBercos[berco].tamanho;
+        posicao2 = rand() % solucao.atendimentoBercos[berco].tamanho;
+
+        navioTroca = solucao.atendimentoBercos[berco].navios[posicao1];
+        solucao.atendimentoBercos[berco].navios[posicao1] = solucao.atendimentoBercos[berco].navios[posicao2];
+        solucao.atendimentoBercos[berco].navios[posicao2] = navioTroca;
+
+        fo = calcularFoBerco(solucao, berco);
+
+        if (fo < melhorFo) {
+          melhorFo = fo;
+        } else {
+          solucao.atendimentoBercos[berco].navios[posicao2] = solucao.atendimentoBercos[berco].navios[posicao1];
+          solucao.atendimentoBercos[berco].navios[posicao1] = navioTroca;
+        }
+      }
+    }
   }
 }
 
@@ -366,6 +397,73 @@ void inserirAtendimento (Solucao &solucao, int berco, int navio) {
     // NAVIO_ATUAL = solucao.atendimentoBercos[berco].navios[j];
     // menor = momentoChegadaNavio[aux] < momentoChegadaNavio[NAVIO_ATUAL];
     // igualEDuracaoAtendimentoMenor = momentoChegadaNavio[aux] == momentoChegadaNavio[NAVIO_ATUAL] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][NAVIO_ATUAL];
+
+    while ((j >= 0) && (momentoChegadaNavio[aux] < momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] || (momentoChegadaNavio[aux] == momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][solucao.atendimentoBercos[berco].navios[j]]))) {
+      solucao.atendimentoBercos[berco].navios[j+1] = solucao.atendimentoBercos[berco].navios[j];
+      j--;
+    }
+
+    if (j != (i-1)) solucao.atendimentoBercos[berco].navios[j+1] = aux;
+  }
+
+  int fo, melhorFo, posicao1, posicao2, navioTroca;
+
+  if (solucao.atendimentoBercos[berco].tamanho > 1) {
+    srand(seed+berco);
+
+    melhorFo = calcularFoBerco(solucao, berco);
+
+    for (int i = 0; i < MIN(100000, pow(solucao.atendimentoBercos[berco].tamanho, 3)); i++) {
+      posicao1 = rand() % solucao.atendimentoBercos[berco].tamanho;
+      posicao2 = rand() % solucao.atendimentoBercos[berco].tamanho;
+
+      navioTroca = solucao.atendimentoBercos[berco].navios[posicao1];
+      solucao.atendimentoBercos[berco].navios[posicao1] = solucao.atendimentoBercos[berco].navios[posicao2];
+      solucao.atendimentoBercos[berco].navios[posicao2] = navioTroca;
+
+      fo = calcularFoBerco(solucao, berco);
+
+      if (fo < melhorFo) {
+        melhorFo = fo;
+      } else {
+        solucao.atendimentoBercos[berco].navios[posicao2] = solucao.atendimentoBercos[berco].navios[posicao1];
+        solucao.atendimentoBercos[berco].navios[posicao1] = navioTroca;
+      }
+    }
+  }
+}
+
+void removerAtendimentoOrdemChegada (Solucao &solucao, int navioARemover) {
+  int berco = solucao.atendimentoNavios[navioARemover];
+  int navio, aux;
+
+  if (berco != -1) {
+    int i = solucao.atendimentoBercos[berco].tamanho - 1;
+    navio = -1;
+    do {
+      aux = navio;
+      navio = solucao.atendimentoBercos[berco].navios[i];
+      solucao.atendimentoBercos[berco].navios[i] = aux;
+      i--;
+    } while (navio != navioARemover);
+
+    solucao.atendimentoBercos[berco].tamanho--;
+    solucao.atendimentoNavios[navioARemover] = -1;
+  }
+}
+
+void inserirAtendimentoOrdemChegada (Solucao &solucao, int berco, int navio) {
+  removerAtendimento(solucao, navio);
+
+  solucao.atendimentoNavios[navio] = berco;
+  solucao.atendimentoBercos[berco].navios[solucao.atendimentoBercos[berco].tamanho] = navio;
+  solucao.atendimentoBercos[berco].tamanho++;
+
+  int j;
+  int aux;
+  for (int i = 1; i < solucao.atendimentoBercos[berco].tamanho; i++) {
+    aux = solucao.atendimentoBercos[berco].navios[i];
+    j = i - 1;
 
     while ((j >= 0) && (momentoChegadaNavio[aux] < momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] || (momentoChegadaNavio[aux] == momentoChegadaNavio[solucao.atendimentoBercos[berco].navios[j]] && duracaoAtendimento[berco][aux] < duracaoAtendimento[berco][solucao.atendimentoBercos[berco].navios[j]]))) {
       solucao.atendimentoBercos[berco].navios[j+1] = solucao.atendimentoBercos[berco].navios[j];
@@ -485,4 +583,83 @@ void lerInstancia (char* nomeInstancia) {
   }
 
   fclose(instancia);
+}
+
+void testeEstrategiasInsercao () {
+  Solucao s1, s2, s3;
+  int berco = 1, fo1, fo2, nav, flag;
+  int n = 10;
+  int insert[10];
+
+  seed = clock();
+
+  for (int k = 0; k < numeroBercos; k++) {
+    s1.atendimentoBercos[k].tamanho = 0;
+    s2.atendimentoBercos[k].tamanho = 0;
+    s3.atendimentoBercos[k].tamanho = 0;
+  }
+
+  memset(&s1.atendimentoNavios, -1, sizeof(s1.atendimentoNavios));
+  memset(&s2.atendimentoNavios, -1, sizeof(s2.atendimentoNavios));
+  memset(&s3.atendimentoNavios, -1, sizeof(s3.atendimentoNavios));
+
+  srand(seed);
+  for (int i = 0; i < n; i++) {
+    do {
+      flag = 0;
+      nav = rand() % numeroNavios;
+
+      for (int j = 0; j < s1.atendimentoBercos[berco].tamanho; j++) {
+        if (nav == s1.atendimentoBercos[berco].navios[j]) {
+          flag = 1;
+          break;
+        }
+      }
+    } while (duracaoAtendimento[berco][nav] == 0 || flag);
+
+    insert[i] = nav;
+
+    inserirAtendimento(s1, berco, nav);
+    inserirAtendimentoOrdemChegada(s2, berco, nav);
+    fo1 = calcularFoBerco(s1, berco);
+    fo2 = calcularFoBerco(s2, berco);
+
+    cout << "I -> " << nav << " | ";
+
+    for (int j = 0; j < s1.atendimentoBercos[berco].tamanho; j++) {
+      cout << s1.atendimentoBercos[berco].navios[j] << " ";
+    }
+
+    cout << "| Aleatória: FO = " << fo1 << endl;
+
+    cout << "I -> " << nav << " | ";
+    for (int j = 0; j < s2.atendimentoBercos[berco].tamanho; j++) {
+      cout << s2.atendimentoBercos[berco].navios[j] << " ";
+    }
+
+    cout << "| Ordem de chegada FO = " << fo2 << endl << endl;
+  }
+
+  for (int i = n - 1; i > 0; i--) {
+    removerAtendimento(s1, insert[i]);
+    removerAtendimentoOrdemChegada(s2, insert[i]);
+
+    fo1 = calcularFoBerco(s1, berco);
+    fo2 = calcularFoBerco(s2, berco);
+
+    cout << "R -> " << insert[i] << " | ";
+
+    for (int j = 0; j < s1.atendimentoBercos[berco].tamanho; j++) {
+      cout << s1.atendimentoBercos[berco].navios[j] << " ";
+    }
+
+    cout << "| Aleatória: FO = " << fo1 << endl;
+
+    cout << "R -> " << insert[i] << " | ";
+    for (int j = 0; j < s2.atendimentoBercos[berco].tamanho; j++) {
+      cout << s2.atendimentoBercos[berco].navios[j] << " ";
+    }
+
+    cout << "| Ordem de chegada FO = " << fo2 << endl << endl;
+  }
 }

@@ -1,3 +1,6 @@
+# Test mode
+TEST = on
+
 # Debug mode
 DBG = off
 
@@ -36,6 +39,11 @@ endif
 # Enabling debug mode (printf)
 ifeq ($(DBG), on)
 	USER_FLAGS += -D DEBUG
+endif
+
+# Enabling test mode
+ifeq ($(TEST), on)
+	USER_FLAGS += -D TEST
 endif
 
 
