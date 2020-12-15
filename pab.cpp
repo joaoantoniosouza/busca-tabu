@@ -22,7 +22,7 @@ int main (int argc, char **argv) {
     if (argc == 1) {
       cout << " =====================================================" << endl;
       cout << "Comando para execução parametrizada: " << endl;
-      cout << "   $ ./exe instancia tempo_processamento numero_exec maximo_troca potencia_troca pertubacao seed" << endl;
+      cout << "   $ ./exe instancia tamanho_lista tempo_processamento numero_exec maximo_troca potencia_troca seed" << endl;
       cout << endl << "Todos os parâmetros são opcionais." << endl;
       cout << "Default" << endl;
       cout << "   Instância: i01.txt." << endl;
@@ -33,8 +33,19 @@ int main (int argc, char **argv) {
     }
 
     instancia = argc > 1 ? argv[1] : (char*) "instancias/i01.txt";
-    tempoMaximo = argc >= 3 ? atof(argv[2]) : tempoMaximo;
-    numeroExecucoes = argc >= 4 ? atoi(argv[3]) : numeroExecucoes;
+    tamanhoListaTabu = argc >= 3 ? atoi(argv[2]) : tamanhoListaTabu;
+    tempoMaximo = argc >= 3 ? atof(argv[3]) : tempoMaximo;
+    numeroExecucoes = argc >= 4 ? atoi(argv[4]) : numeroExecucoes;
+    maximoTrocas = argc >= 5 ? atoi(argv[5]) : maximoTrocas;
+    potenciaDeTroca = argc >= 6 ? atoi(argv[6]) : potenciaDeTroca;
+
+    cout << "Executando..." << endl << endl;
+    cout << "Instância: " << instancia << endl;
+    cout << "Tamanho da lista: " << tamanhoListaTabu << endl;
+    cout << "Tempo máximo: " << tempoMaximo << endl;
+    cout << "Número de execuções: " << numeroExecucoes << endl;
+    cout << "Máximo de trocas: " << maximoTrocas << endl;
+    cout << "Potência de trocas: " << potenciaDeTroca << endl << endl;
 
     lerInstancia(instancia);
 
@@ -50,13 +61,10 @@ int main (int argc, char **argv) {
     for (int i = 0; i < numeroExecucoes; i++) {
       cout << "===== Execução " << i + 1 << " =====" << endl << endl;
 
-      maximoTrocas = argc >= 5 ? atoi(argv[4]) : maximoTrocas;
-      potenciaDeTroca = argc >= 6 ? atoi(argv[5]) : potenciaDeTroca;
-      pertubacao = argc >= 7 ? atoi(argv[6]) : pertubacao;
       seed = argc == 8 ? atoi(argv[7]) : clock();
 
       srand(seed);
-      buscaTabu(solucao, 1000, tempoMaximo, tempoTotal, momentoMelhorSolucao, solucaoInicial);
+      buscaTabu(solucao, tamanhoListaTabu, tempoMaximo, tempoTotal, momentoMelhorSolucao, solucaoInicial);
 
       tempoSoma += tempoTotal;
       melhorTempoSoma += momentoMelhorSolucao;
@@ -101,9 +109,9 @@ void escreverMediasLog (int numeroExecucoes, int melhorFo, int somaFo, double te
 void escreverCabecalhoLog (char *instancia) {
   FILE* logFile = fopen("log", "a");
   fprintf(logFile, "INSTÂNCIA: %s\n", instancia);
+  fprintf(logFile, "TAMANHO LISTA: %d\n", tamanhoListaTabu);
   fprintf(logFile, "MÁXIMO TROCAS: %d\n", maximoTrocas);
-  fprintf(logFile, "POTÊNCIA DE TROCA: %d\n\n", potenciaDeTroca);
-  fprintf(logFile, "IT PERTUBACAO: %d\n\n", pertubacao);
+  fprintf(logFile, "POTÊNCIA DE TROCA: %d\n", potenciaDeTroca);
   fprintf(logFile, "SOLUÇÃO INICIAL\t\tFO\t\t\tTEMPO TOTAL\t\tTEMPO MELHOR\t\tSEED\n");
   fclose(logFile);
 }
@@ -144,7 +152,6 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
   int bercoOriginal, tempoOriginal;
   int melhorTempo, melhorNavio, melhorBerco, melhorPosicao;
   int flag, posicaoNaLista;
-  int it = 0;
 
   while(tempoTotal < tempoMaximo) {
     melhorTempo = INT_MAX;
@@ -207,20 +214,6 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
       clonarSolucao(solucaoVizinha, solucao);
       clockAtual = clock();
       momentoMelhorSolucao = calcularTempo(clockInicial, clockAtual);
-    } else {
-      it++;
-
-      int navioTroca, bercoTroca;
-      if (pertubacao != -1 && it == pertubacao) {
-        for (int i = 0; i < 1 + rand() % 100; i++) {
-          navioTroca = rand() % numeroNavios;
-          bercoTroca = rand() % numeroBercos;
-          removerAtendimento(solucao, navioTroca);
-          solucao.atendimentoBercos[bercoTroca].navios[solucao.atendimentoBercos[bercoTroca].tamanho] = navioTroca;
-          solucao.atendimentoBercos[bercoTroca].tamanho++;
-        }
-        it = 0;
-      }
     }
 
     // ----

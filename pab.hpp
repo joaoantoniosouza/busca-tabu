@@ -3,13 +3,11 @@
 
 #define MAXIMO_TROCAS_ALEATORIAS 100
 #define POTENCIA_DE_TROCAS 2
-#define IT_PERTUBACAO 20
-#define TAMANHO_LISTA_TABU 100000
+#define TAMANHO_LISTA_TABU 1000
 
 int maximoTrocas = MAXIMO_TROCAS_ALEATORIAS;
 int potenciaDeTroca = POTENCIA_DE_TROCAS;
 int tamanhoListaTabu = TAMANHO_LISTA_TABU;
-int pertubacao = IT_PERTUBACAO;
 
 #define MAX_NAVIOS 110
 #define MAX_BERCOS 25
