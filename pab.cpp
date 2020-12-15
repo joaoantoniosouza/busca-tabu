@@ -161,7 +161,7 @@ void buscaTabu (Solucao &solucao, const int tamanhoLista, const double tempoMaxi
           inserirAtendimento(solucaoVizinha, k, i);
 
           calcularFO(solucaoVizinha);
-          posicaoNaLista = procurarNaLista(listaTabu, quantidadeElementosLista, k, i);
+          posicaoNaLista = procurarNaLista(listaTabu, quantidadeElementosLista, i, k);
           if (posicaoNaLista != -1) {
             if (solucaoVizinha.tempoAtendimentoTotal < solucao.tempoAtendimentoTotal) {
               flag = 0;
