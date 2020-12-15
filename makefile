@@ -1,5 +1,5 @@
 # Test mode
-TEST = on
+TEST = off
 
 # Debug mode
 DBG = off
