@@ -4,7 +4,11 @@
 #define MAXIMO_TROCAS_ALEATORIAS 100
 #define POTENCIA_DE_TROCAS 2
 #define TAMANHO_LISTA_TABU 1000
+#define TEMPO_MAXIMO 5
+#define NUMERO_EXECUCOES 1
 
+double tempoExecucaoMaximo = TEMPO_MAXIMO;
+int numeroExecucoes = NUMERO_EXECUCOES;
 int maximoTrocas = MAXIMO_TROCAS_ALEATORIAS;
 int potenciaDeTroca = POTENCIA_DE_TROCAS;
 int tamanhoListaTabu = TAMANHO_LISTA_TABU;

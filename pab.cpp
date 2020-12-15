@@ -12,12 +12,7 @@ using namespace std;
 
 int main (int argc, char **argv) {
   #ifndef TEST
-    int numeroExecucoes;
-    double tempoMaximo;
     char* instancia;
-
-    tempoMaximo = 2;
-    numeroExecucoes = 3;
 
     if (argc == 1) {
       cout << " =====================================================" << endl;
@@ -27,14 +22,14 @@ int main (int argc, char **argv) {
       cout << "Default" << endl;
       cout << "   Instância: i01.txt." << endl;
       cout << "   Numero de execuções:" << numeroExecucoes << "." << endl;
-      cout << "   Tempo máximo:" << tempoMaximo << " seg." << endl;
+      cout << "   Tempo máximo:" << tempoExecucaoMaximo << " seg." << endl;
       cout << "   Seed aleatória." << endl;
       cout << " =====================================================" << endl << endl;
     }
 
     instancia = argc > 1 ? argv[1] : (char*) "instancias/i01.txt";
     tamanhoListaTabu = argc >= 3 ? atoi(argv[2]) : tamanhoListaTabu;
-    tempoMaximo = argc >= 3 ? atof(argv[3]) : tempoMaximo;
+    tempoExecucaoMaximo = argc >= 3 ? atof(argv[3]) : tempoExecucaoMaximo;
     numeroExecucoes = argc >= 4 ? atoi(argv[4]) : numeroExecucoes;
     maximoTrocas = argc >= 5 ? atoi(argv[5]) : maximoTrocas;
     potenciaDeTroca = argc >= 6 ? atoi(argv[6]) : potenciaDeTroca;
@@ -42,7 +37,7 @@ int main (int argc, char **argv) {
     cout << "Executando..." << endl << endl;
     cout << "Instância: " << instancia << endl;
     cout << "Tamanho da lista: " << tamanhoListaTabu << endl;
-    cout << "Tempo máximo: " << tempoMaximo << endl;
+    cout << "Tempo máximo: " << tempoExecucaoMaximo << endl;
     cout << "Número de execuções: " << numeroExecucoes << endl;
     cout << "Máximo de trocas: " << maximoTrocas << endl;
     cout << "Potência de trocas: " << potenciaDeTroca << endl << endl;
@@ -64,7 +59,7 @@ int main (int argc, char **argv) {
       seed = argc == 8 ? atoi(argv[7]) : clock();
 
       srand(seed);
-      buscaTabu(solucao, tamanhoListaTabu, tempoMaximo, tempoTotal, momentoMelhorSolucao, solucaoInicial);
+      buscaTabu(solucao, tamanhoListaTabu, tempoExecucaoMaximo, tempoTotal, momentoMelhorSolucao, solucaoInicial);
 
       tempoSoma += tempoTotal;
       melhorTempoSoma += momentoMelhorSolucao;
@@ -88,11 +83,11 @@ int main (int argc, char **argv) {
   return 0;
 }
 
-void escreverMediasLog (int numeroExecucoes, int melhorFo, int somaFo, double tempoSoma, double melhorTempoSoma) {
-  double mediaFo = somaFo / numeroExecucoes;
+void escreverMediasLog (int numeroExec, int melhorFo, int somaFo, double tempoSoma, double melhorTempoSoma) {
+  double mediaFo = somaFo / numeroExec;
   double desvio = 100 * (mediaFo - melhorFo) / melhorFo;
-  double tempoMedio = tempoSoma / numeroExecucoes;
-  double mediaMelhorTempo = melhorTempoSoma / numeroExecucoes;
+  double tempoMedio = tempoSoma / numeroExec;
+  double mediaMelhorTempo = melhorTempoSoma / numeroExec;
 
   FILE *logFile = fopen("log", "a");
 
